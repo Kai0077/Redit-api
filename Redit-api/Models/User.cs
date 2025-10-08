@@ -1,8 +1,10 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Redit_api.Models.Status;
 
 namespace Redit_api.Models
 {
     
+    [NotMapped]
     public class User
     {
        public string Name { get; set; }
