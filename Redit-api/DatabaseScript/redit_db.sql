@@ -5,7 +5,7 @@ CREATE TYPE user_status AS ENUM ('online', 'idle', 'offline', 'invisible', 'do_n
 CREATE TYPE post_status AS ENUM ('active', 'archived');
 
 -- USERS
-CREATE TABLE user
+CREATE TABLE "user"
 (
     username        VARCHAR(50) PRIMARY KEY,
     name            VARCHAR(100)        NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE community
     name            VARCHAR(100) PRIMARY KEY,
     description     TEXT,
     profile_picture TEXT,
-    owner_username  VARCHAR(50) REFERENCES user (username) ON DELETE SET NULL,
+    owner_username  VARCHAR(50) REFERENCES "user" (username) ON DELETE SET NULL,
     pinned_post_ids INT[] DEFAULT '{}'
 );
 
@@ -35,7 +35,7 @@ CREATE TABLE post
     title           VARCHAR(200) NOT NULL,
     description     TEXT,
     aura            INT         DEFAULT 0,
-    original_poster VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    original_poster VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     community       VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
     embeds          TEXT[]      DEFAULT '{}',
     status          post_status DEFAULT 'active'
@@ -48,7 +48,7 @@ CREATE TABLE comments
     text      TEXT NOT NULL,
     embeds    TEXT[] DEFAULT '{}',
     aura      INT    DEFAULT 0,
-    commenter VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    commenter VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     post_id   INT REFERENCES post (id) ON DELETE CASCADE,
     parent_id INT REFERENCES comments (id) ON DELETE CASCADE
 );
@@ -57,7 +57,7 @@ CREATE TABLE comments
 CREATE TABLE community_members
 (
     community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
-    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     PRIMARY KEY (community_name, username)
 );
 
@@ -65,7 +65,7 @@ CREATE TABLE community_members
 CREATE TABLE community_admins
 (
     community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
-    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     PRIMARY KEY (community_name, username)
 );
 
@@ -73,15 +73,15 @@ CREATE TABLE community_admins
 CREATE TABLE community_moderators
 (
     community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
-    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     PRIMARY KEY (community_name, username)
 );
 
 -- USER FOLLOWS (self-referencing many-to-many)
 CREATE TABLE user_follows
 (
-    follower_username  VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
-    following_username VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    follower_username  VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
+    following_username VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     PRIMARY KEY (follower_username, following_username),
     CHECK (follower_username <> following_username)
 );
@@ -89,7 +89,7 @@ CREATE TABLE user_follows
 -- USER COMMUNITIES (subscriptions)
 CREATE TABLE user_communities
 (
-    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
     PRIMARY KEY (username, community_name)
 );
@@ -97,21 +97,21 @@ CREATE TABLE user_communities
 -- USER OWNS / ADMINISTRATES / MODERATES COMMUNITIES
 CREATE TABLE user_owns_community
 (
-    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
     PRIMARY KEY (username, community_name)
 );
 
 CREATE TABLE user_administrates_community
 (
-    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
     PRIMARY KEY (username, community_name)
 );
 
 CREATE TABLE user_moderates_community
 (
-    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
     PRIMARY KEY (username, community_name)
 );
