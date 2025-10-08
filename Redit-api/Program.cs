@@ -1,5 +1,27 @@
+using DotNetEnv;
+using Microsoft.EntityFrameworkCore;
+using Redit_api.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
+Env.Load();
+
+
+// Build connection string from environment variables
+var host = Environment.GetEnvironmentVariable("DB_HOST");
+var port = Environment.GetEnvironmentVariable("DB_PORT");
+var database = Environment.GetEnvironmentVariable("DB_NAME");
+var user = Environment.GetEnvironmentVariable("DB_USER");
+var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+
+
+var connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password};Ssl Mode=Disable";
+
+// Register EF Core
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+builder.Services.AddControllers();
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -16,29 +38,5 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
-
+app.MapControllers();
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
