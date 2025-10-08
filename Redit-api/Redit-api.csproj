@@ -14,7 +14,6 @@
 
     <ItemGroup>
       <Folder Include="Controllers\" />
-      <Folder Include="DatabaseScript\" />
       <Folder Include="Repositories\" />
       <Folder Include="Services\" />
     </ItemGroup>

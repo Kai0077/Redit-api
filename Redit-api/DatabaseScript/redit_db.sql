@@ -1,127 +1,123 @@
--- Create database
-CREATE
-DATABASE redit_db;
-\c
-redit_db;
+CREATE DATABASE redit_db;
 
 -- ENUM types
-CREATE TYPE user_status AS ENUM ('online', 'idle', 'offline', 'invisible', 'dnd');
+CREATE TYPE user_status AS ENUM ('online', 'idle', 'offline', 'invisible', 'do_not_disturb');
 CREATE TYPE post_status AS ENUM ('active', 'archived');
 
--- USER table
-CREATE TABLE "User"
+-- USERS
+CREATE TABLE user
 (
-    name     VARCHAR(100)                   NOT NULL,
-    username VARCHAR(50) UNIQUE PRIMARY KEY NOT NULL,
-    email     VARCHAR(150) UNIQUE            NOT NULL,
-    age      INT CHECK (age >= 13),
-    passwordHash VARCHAR(255)                   NOT NULL,
-    aura     INT         DEFAULT 0,
-    bio      TEXT,
-    profilePicture      TEXT,
-    accountStatus   user_status DEFAULT 'offline'
+    username        VARCHAR(50) PRIMARY KEY,
+    name            VARCHAR(100)        NOT NULL,
+    email           VARCHAR(150) UNIQUE NOT NULL,
+    age             INT CHECK (age >= 13),
+    password_hash   VARCHAR(255)        NOT NULL,
+    aura            INT         DEFAULT 0,
+    bio             TEXT,
+    profile_picture TEXT,
+    account_status  user_status DEFAULT 'offline'
 );
 
--- COMMUNITY table
-CREATE TABLE Community
+-- COMMUNITIES
+CREATE TABLE community
 (
-    posts          INT REFERENCES "Post" (id) ON DELETE SET NULL,
-    name           VARCHAR(100) UNIQUE PRIMARY KEY NOT NULL,
-    description    TEXT,
-    profilePicture            TEXT,
-    ownerUsername VARCHAR(50)                     REFERENCES "User" (username) ON DELETE SET NULL,
-    pinned         INT[] DEFAULT '{}'
+    name            VARCHAR(100) PRIMARY KEY,
+    description     TEXT,
+    profile_picture TEXT,
+    owner_username  VARCHAR(50) REFERENCES user (username) ON DELETE SET NULL,
+    pinned_post_ids INT[] DEFAULT '{}'
 );
 
--- POST table
-CREATE TABLE Post
+-- POSTS
+CREATE TABLE post
 (
-    id          SERIAL PRIMARY KEY,
-    title       VARCHAR(200) NOT NULL,
-    description TEXT,
-    aura        INT         DEFAULT 0,
-    originalPoster       INT REFERENCES "User" (username) ON DELETE CASCADE,
-    community   VARCHAR(100) REFERENCES Community (name) ON DELETE CASCADE,
-    embeds      TEXT[] DEFAULT '{}',
-    postStatus      post_status DEFAULT 'active'
+    id              SERIAL PRIMARY KEY,
+    title           VARCHAR(200) NOT NULL,
+    description     TEXT,
+    aura            INT         DEFAULT 0,
+    original_poster VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    community       VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
+    embeds          TEXT[]      DEFAULT '{}',
+    status          post_status DEFAULT 'active'
 );
 
--- COMMENT table
-CREATE TABLE Comment
+-- COMMENTS
+CREATE TABLE comments
 (
     id        SERIAL PRIMARY KEY,
     text      TEXT NOT NULL,
     embeds    TEXT[] DEFAULT '{}',
-    aura      INT DEFAULT 0,
-    commenter  INT REFERENCES "User" (username) ON DELETE CASCADE,
-    postId   INT REFERENCES Post (id) ON DELETE CASCADE,
-    parentId INT REFERENCES Comment (id) ON DELETE CASCADE
+    aura      INT    DEFAULT 0,
+    commenter VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    post_id   INT REFERENCES post (id) ON DELETE CASCADE,
+    parent_id INT REFERENCES comments (id) ON DELETE CASCADE
 );
 
--- RELATIONSHIPS (many-to-many)
--- Community members
-CREATE TABLE CommunityMembers
+-- COMMUNITY MEMBERS (many-to-many)
+CREATE TABLE community_members
 (
-    community VARCHAR(100) REFERENCES Community (name) ON DELETE CASCADE,
-    username  VARCHAR(50) REFERENCES "User" (username) ON DELETE CASCADE,
-    PRIMARY KEY (name, username)
+    community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    PRIMARY KEY (community_name, username)
 );
 
--- Community admins
-CREATE TABLE CommunityAdmins
+-- COMMUNITY ADMINS
+CREATE TABLE community_admins
 (
-    community VARCHAR(100) REFERENCES Community (name) ON DELETE CASCADE,
-    username  VARCHAR(50) REFERENCES "User" (username) ON DELETE CASCADE,
-    PRIMARY KEY (name, username)
+    community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    PRIMARY KEY (community_name, username)
 );
 
--- Community moderators
-CREATE TABLE CommunityMods
+-- COMMUNITY MODERATORS
+CREATE TABLE community_moderators
 (
-    community VARCHAR(100) REFERENCES Community (name) ON DELETE CASCADE,
-    username  VARCHAR(50) REFERENCES "User" (username) ON DELETE CASCADE,
-    PRIMARY KEY (name, username)
+    community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
+    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    PRIMARY KEY (community_name, username)
 );
 
--- User follows (self-referencing many-to-many)
-CREATE TABLE UserFollows
+-- USER FOLLOWS (self-referencing many-to-many)
+CREATE TABLE user_follows
 (
-    followers VARCHAR(50) REFERENCES "User" (username) ON DELETE CASCADE,
-    following VARCHAR(50) REFERENCES "User" (username) ON DELETE CASCADE,
-    PRIMARY KEY (followers, following)
+    follower_username  VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    following_username VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    PRIMARY KEY (follower_username, following_username),
+    CHECK (follower_username <> following_username)
 );
 
--- User communities (subscriptions)
-CREATE TABLE UserCommunities
+-- USER COMMUNITIES (subscriptions)
+CREATE TABLE user_communities
 (
-    username  VARCHAR(50) REFERENCES "User" (username) ON DELETE CASCADE,
-    community INT REFERENCES Community (name) ON DELETE CASCADE,
-    PRIMARY KEY (username, community)
+    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
+    PRIMARY KEY (username, community_name)
 );
 
--- User owns/admins/moderates communities
-CREATE TABLE UserOwnsCommunity
+-- USER OWNS / ADMINISTRATES / MODERATES COMMUNITIES
+CREATE TABLE user_owns_community
 (
-    username  VARCHAR(50) REFERENCES "User" (username) ON DELETE CASCADE,
-    community VARCHAR(100) REFERENCES Community (name) ON DELETE CASCADE,
-    PRIMARY KEY (username, community)
+    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
+    PRIMARY KEY (username, community_name)
 );
 
-CREATE TABLE UserAdministratesCommunity
+CREATE TABLE user_administrates_community
 (
-    username  VARCHAR(50) REFERENCES "User" (username) ON DELETE CASCADE,
-    community VARCHAR(100) REFERENCES Community (name) ON DELETE CASCADE,
-    PRIMARY KEY (username, community)
+    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
+    PRIMARY KEY (username, community_name)
 );
 
-CREATE TABLE UserModeratesCommunity
+CREATE TABLE user_moderates_community
 (
-    username  INT REFERENCES "User" (username) ON DELETE CASCADE,
-    community INT REFERENCES Community (name) ON DELETE CASCADE,
-    PRIMARY KEY (username, community)
+    username       VARCHAR(50) REFERENCES user (username) ON DELETE CASCADE,
+    community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
+    PRIMARY KEY (username, community_name)
 );
 
--- OPTIONAL: Comments can have replies (self-reference)
-ALTER TABLE Comment
-    ADD CONSTRAINT fk_comment_parent
-        FOREIGN KEY (parent_id) REFERENCES Comment (id) ON DELETE CASCADE;
+-- Helpful indexes
+CREATE INDEX idx_posts_community ON post (community);
+CREATE INDEX idx_posts_poster ON post (original_poster);
+CREATE INDEX idx_comments_post ON comments (post_id);
+CREATE INDEX idx_comments_parent ON comments (parent_id);
