@@ -19,7 +19,7 @@ namespace Redit_api.Models
        public User[] Followers { get; set; }
        public User[] Following { get; set; }
        public string ProfilePicture { get; set; }
-       public UserStatus AccountStatus { get; set; }
+       public UserStatus AccountStatus { get; set; } = UserStatus.Offline;
        public string Bio { get; set; }
        public Community[] Owns { get; set; }
        public Community[] Administrates { get; set; }

@@ -32,7 +32,7 @@ namespace Redit_api.Services
 
             var claims = new List<Claim>
             {
-                new(JwtRegisteredClaimNames.Sub, user.Email), // email is main identity
+                new(JwtRegisteredClaimNames.Sub, user.Email),
                 new(JwtRegisteredClaimNames.Email, user.Email),
                 new("name", user.Name ?? string.Empty)
             };

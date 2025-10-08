@@ -37,8 +37,8 @@ namespace Redit_api.Models
         [Column("profile_picture")]
         public string? ProfilePicture { get; set; }
 
-        //[Column("account_status")]
-        //public UserStatus AccountStatus { get; set; } = UserStatus.Offline;
+        [Column("account_status")]
+        public UserStatus AccountStatus { get; set; } = UserStatus.Offline;
 
     }
 }
