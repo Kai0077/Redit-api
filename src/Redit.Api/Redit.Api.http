@@ -1,6 +1,0 @@
-@Redit.Api_HostAddress = http://localhost:5137
-
-GET {{Redit.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
