@@ -13,7 +13,7 @@ namespace Redit_api.Models.DTO
         [Required, EmailAddress, MaxLength(150)]
         public string Email { get; set; }
 
-        [Range(13, 120)]
+        [Required ,Range(13, 120)]
         public int Age { get; set; }
 
         [Required, MinLength(8)]

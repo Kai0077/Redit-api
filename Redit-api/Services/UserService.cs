@@ -9,12 +9,12 @@ namespace Redit_api.Services
 {
     public class UserService : IUserService
     {
-        private readonly IUserRepository _repo;
+        private readonly IUserRepository _repository;
         private readonly IPasswordHasher<UserDTO> _hasher;
 
-        public UserService(IUserRepository repo, IPasswordHasher<UserDTO> hasher)
+        public UserService(IUserRepository repository, IPasswordHasher<UserDTO> hasher)
         {
-            _repo = repo;
+            _repository = repository;
             _hasher = hasher;
         }
 
@@ -23,10 +23,10 @@ namespace Redit_api.Services
             var username = dto.Username.Trim().ToLowerInvariant();
             var email = dto.Email.Trim().ToLowerInvariant();
 
-            if (await _repo.UsernameExistsAsync(username, ct))
+            if (await _repository.UsernameExistsAsync(username, ct))
                 return (false, "Username already exists.", null);
 
-            if (await _repo.EmailExistsAsync(email, ct))
+            if (await _repository.EmailExistsAsync(email, ct))
                 return (false, "Email already in use.", null);
 
             var user = new UserDTO
@@ -45,7 +45,7 @@ namespace Redit_api.Services
 
             try
             {
-                var created = await _repo.CreateAsync(user, ct);
+                var created = await _repository.CreateAsync(user, ct);
                 var result = new
                 {
                     created.Username,
@@ -55,7 +55,7 @@ namespace Redit_api.Services
                     created.Aura,
                     created.Bio,
                     created.ProfilePicture,
-                    //AccountStatus = created.AccountStatus
+                    AccountStatus = created.AccountStatus
                 };
                 return (true, null, result);
             }

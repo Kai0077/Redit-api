@@ -1,12 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Redit_api.Models;
-using Redit_api.Models.Status;
 
 namespace Redit_api.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDBContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public AppDBContext(DbContextOptions<AppDBContext> options) : base(options)
+        {
+            
+        }
 
         public DbSet<UserDTO> Users => Set<UserDTO>();
         public DbSet<Post> Posts => Set<Post>();
@@ -18,12 +20,15 @@ namespace Redit_api.Data
             modelBuilder.HasPostgresEnum<UserStatus>("user_status");
 
             // Force the property to use the PG enum type (prevents int binding)
-            //modelBuilder.Entity<UserDTO>()
-              //  .Property(u => u.AccountStatus)
-                //.HasColumnType("user_status");   // <-- NO HasConversion<string>() here
+            modelBuilder.Entity<UserDTO>(b =>
+            {
+                b.ToTable("user", "public");
 
-            modelBuilder.Ignore<Community>();
-            base.OnModelCreating(modelBuilder);
+                // mapping to PG enum type
+                b.Property(u => u.AccountStatus)
+                    .HasColumnName("account_status")
+                    .HasColumnType("user_status");
+            });
         }
     }
 }

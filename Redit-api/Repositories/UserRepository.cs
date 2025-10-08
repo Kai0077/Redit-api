@@ -7,8 +7,8 @@ namespace Redit_api.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly AppDbContext _db;
-        public UserRepository(AppDbContext db) => _db = db;
+        private readonly AppDBContext _db;
+        public UserRepository(AppDBContext db) => _db = db;
 
         public Task<bool> UsernameExistsAsync(string username, CancellationToken ct) =>
             _db.Users.AsNoTracking().AnyAsync(u => u.Username == username, ct);

@@ -12,24 +12,20 @@ using Redit_api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load env vars
 Env.Load("Secret.env");
 
-string host = Environment.GetEnvironmentVariable("DB_HOST")!;
-string port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
-string database = Environment.GetEnvironmentVariable("DB_NAME")!;
-string user = Environment.GetEnvironmentVariable("DB_USER")!;
-string password = Environment.GetEnvironmentVariable("DB_PASSWORD")!;
+var host = Environment.GetEnvironmentVariable("DB_HOST");
+var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+var database = Environment.GetEnvironmentVariable("DB_NAME");
+var user = Environment.GetEnvironmentVariable("DB_USER");
+var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 
-string connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password};Ssl Mode=Disable";
+var connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password};Ssl Mode=Disable";
 
-// ✅ Build and register Npgsql data source
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-dataSourceBuilder.MapEnum<UserStatus>("user_status"); // <-- required
-var dataSource = dataSourceBuilder.Build();
-
-// IMPORTANT: only this AddDbContext!
-builder.Services.AddDbContext<AppDbContext>(opts => opts.UseNpgsql(dataSource));
+// Mapping Enum type to PG Enum
+builder.Services.AddDbContext<AppDBContext>(opts =>
+    opts.UseNpgsql(connectionString, npgsql =>
+        npgsql.MapEnum<UserStatus>("user_status")));
 
 // Services
 builder.Services.AddControllers();
