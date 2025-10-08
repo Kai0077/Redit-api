@@ -12,6 +12,11 @@ namespace Redit_api.Data
         public DbSet<Comment> Comments => Set<Comment>();
         public DbSet<Community> Communities => Set<Community>();
 
-        
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Ignore unmapped array nav for now
+            modelBuilder.Entity<Community>().Ignore(c => c.Admins);
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
