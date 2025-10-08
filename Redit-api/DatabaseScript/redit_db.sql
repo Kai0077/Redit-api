@@ -13,22 +13,23 @@ CREATE TABLE "User"
 (
     name     VARCHAR(100)                   NOT NULL,
     username VARCHAR(50) UNIQUE PRIMARY KEY NOT NULL,
-    mail     VARCHAR(150) UNIQUE            NOT NULL,
+    email     VARCHAR(150) UNIQUE            NOT NULL,
     age      INT CHECK (age >= 13),
-    pswdHash VARCHAR(255)                   NOT NULL,
+    passwordHash VARCHAR(255)                   NOT NULL,
     aura     INT         DEFAULT 0,
     bio      TEXT,
-    pfp      TEXT,
-    status   user_status DEFAULT 'offline'
+    profilePicture      TEXT,
+    accountStatus   user_status DEFAULT 'offline'
 );
 
 -- COMMUNITY table
 CREATE TABLE Community
 (
+    posts          INT REFERENCES "Post" (id) ON DELETE SET NULL,
     name           VARCHAR(100) UNIQUE PRIMARY KEY NOT NULL,
     description    TEXT,
-    pfp            TEXT,
-    owner_username VARCHAR(50)                     REFERENCES "User" (username) ON DELETE SET NULL,
+    profilePicture            TEXT,
+    ownerUsername VARCHAR(50)                     REFERENCES "User" (username) ON DELETE SET NULL,
     pinned         INT[] DEFAULT '{}'
 );
 
@@ -39,10 +40,10 @@ CREATE TABLE Post
     title       VARCHAR(200) NOT NULL,
     description TEXT,
     aura        INT         DEFAULT 0,
-    owner       INT REFERENCES "User" (username) ON DELETE CASCADE,
+    originalPoster       INT REFERENCES "User" (username) ON DELETE CASCADE,
     community   VARCHAR(100) REFERENCES Community (name) ON DELETE CASCADE,
     embeds      TEXT[] DEFAULT '{}',
-    status      post_status DEFAULT 'active'
+    postStatus      post_status DEFAULT 'active'
 );
 
 -- COMMENT table
@@ -52,9 +53,9 @@ CREATE TABLE Comment
     text      TEXT NOT NULL,
     embeds    TEXT[] DEFAULT '{}',
     aura      INT DEFAULT 0,
-    username  INT REFERENCES "User" (username) ON DELETE CASCADE,
-    post_id   INT REFERENCES Post (id) ON DELETE CASCADE,
-    parent_id INT REFERENCES Comment (id) ON DELETE CASCADE
+    commenter  INT REFERENCES "User" (username) ON DELETE CASCADE,
+    postId   INT REFERENCES Post (id) ON DELETE CASCADE,
+    parentId INT REFERENCES Comment (id) ON DELETE CASCADE
 );
 
 -- RELATIONSHIPS (many-to-many)

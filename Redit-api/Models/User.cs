@@ -1,3 +1,5 @@
+using Redit_api.Models.Status;
+
 namespace Redit_api.Models
 {
     
@@ -15,7 +17,7 @@ namespace Redit_api.Models
        public User[] Followers { get; set; }
        public User[] Following { get; set; }
        public string ProfilePicture { get; set; }
-       public Status AccountStatus { get; set; }
+       public UserStatus AccountStatus { get; set; }
        public string Bio { get; set; }
        public Community[] Owns { get; set; }
        public Community[] Administrates { get; set; }
