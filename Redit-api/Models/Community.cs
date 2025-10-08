@@ -2,6 +2,7 @@ namespace Redit_api.Models
 {
     public class Community
     {
+        public string Name { get; set; }
         public Post[] Posts { get; set; }
         public User[] Members { get; set; }
         public string ProfilePicture { get; set; }

@@ -1,11 +1,11 @@
-namespace Redit_api.Models.Status
+namespace Redit_api.Models
 {
     public enum UserStatus
     {
+        Offline,
         Online,
         DoNotDisturb,
         Idle,
-        Offline,
         Invisible
     }
 }
