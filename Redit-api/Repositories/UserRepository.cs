@@ -19,11 +19,20 @@ namespace Redit_api.Repositories
         public Task<UserDTO?> GetByUsernameAsync(string username, CancellationToken ct) =>
             _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == username, ct);
 
+        public Task<UserDTO?> GetByEmailAsync(string email, CancellationToken ct) => 
+            _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email, ct);
+
         public async Task<UserDTO> CreateAsync(UserDTO user, CancellationToken ct)
         {
             _db.Users.Add(user);
             await _db.SaveChangesAsync(ct);
             return user;
+        }
+        
+        public async Task UpdateAsync(UserDTO user, CancellationToken ct)
+        {
+            _db.Users.Update(user);
+            await _db.SaveChangesAsync(ct);
         }
     }
 }
