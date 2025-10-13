@@ -15,23 +15,26 @@ TRUNCATE TABLE
   "user"
 RESTART IDENTITY CASCADE;
 
--- USERS (password = "admin1234", hashed with ASP.NET Core PasswordHasher)
-INSERT INTO "user" (username, name, email, age, password_hash, aura, bio, profile_picture, account_status) VALUES
-                                                                                                               ('kai',     'Kai Tsvetkov',    'kai@example.com',     22, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==', 15, 'Full-stack dev and climber', NULL, 'online'),
-                                                                                                               ('hanni',   'Hanni Lee',       'hanni@example.com',   24, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==', 10, 'Frontend engineer',           NULL, 'idle'),
-                                                                                                               ('wei',     'Wei Zhang',       'wei@example.com',     26, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==',  5, 'Database wizard',             NULL, 'offline'),
-                                                                                                               ('mikkel',  'Mikkel Sørensen', 'mikkel@example.com',  25, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==',  8, 'Sysadmin & hobby drummer',    NULL, 'do_not_disturb');
+-- USERS (password = "admin1234", ASP.NET Core PasswordHasher hash)
+-- NOTE: includes role column now
+INSERT INTO "user"
+(username, name, email, age, password_hash, aura, bio, profile_picture, account_status, role)
+VALUES
+    ('kai',     'Kai Tsvetkov',    'kai@example.com',     22, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==', 15, 'Full-stack dev and climber', NULL, 'online',          'super_user'),
+    ('hanni',   'Hanni Lee',       'hanni@example.com',   24, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==', 10, 'Frontend engineer',           NULL, 'idle',            'super_user'),
+    ('wei',     'Wei Zhang',       'wei@example.com',     26, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==',  5, 'Database wizard',             NULL, 'offline',         'super_user'),
+    ('mikkel',  'Mikkel Sørensen', 'mikkel@example.com',  25, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==',  8, 'Sysadmin & hobby drummer',    NULL, 'do_not_disturb',  'super_user');
 
 -- COMMUNITIES
 INSERT INTO community (name, description, profile_picture, owner_username, pinned_post_ids) VALUES
-                                                                                                ('climbing', 'All about bouldering and routesetting', NULL, 'kai', ARRAY[]::int[]),
+                                                                                                ('climbing', 'All about bouldering and routesetting', NULL, 'kai',   ARRAY[]::int[]),
                                                                                                 ('devs',     'Programming discussions and code review', NULL, 'hanni', ARRAY[]::int[]);
 
 -- POSTS
 INSERT INTO post (id, title, description, aura, original_poster, community, embeds, status) VALUES
-                                                                                                (1, 'Best shoes for overhangs?', 'Looking for suggestions for steep boulders.', 12, 'kai', 'climbing', ARRAY['https://example.com/shoe1'], 'active'),
-                                                                                                (2, 'Show your dotnet tips',     'Share small ASP.NET Core snippets.',          20, 'hanni', 'devs', ARRAY['https://gist.github.com/abc123'], 'active'),
-                                                                                                (3, 'Hand care routine',         'How do you tape and recover skin?',            7, 'wei', 'climbing', ARRAY[]::text[], 'archived');
+                                                                                                (1, 'Best shoes for overhangs?', 'Looking for suggestions for steep boulders.', 12, 'kai',   'climbing', ARRAY['https://example.com/shoe1'], 'active'),
+                                                                                                (2, 'Show your dotnet tips',     'Share small ASP.NET Core snippets.',          20, 'hanni', 'devs',     ARRAY['https://gist.github.com/abc123'], 'active'),
+                                                                                                (3, 'Hand care routine',         'How do you tape and recover skin?',            7, 'wei',   'climbing', ARRAY[]::text[], 'archived');
 
 UPDATE community SET pinned_post_ids = ARRAY[1] WHERE name = 'climbing';
 UPDATE community SET pinned_post_ids = ARRAY[2] WHERE name = 'devs';

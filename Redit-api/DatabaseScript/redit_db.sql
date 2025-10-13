@@ -1,8 +1,15 @@
+-- Create DB (run once from a superuser, or skip if DB already exists)
 CREATE DATABASE redit_db;
+
+-- Switch to the DB if needed (psql only)
+-- \c redit_db
 
 -- ENUM types
 CREATE TYPE user_status AS ENUM ('online', 'idle', 'offline', 'invisible', 'do_not_disturb');
 CREATE TYPE post_status AS ENUM ('active', 'archived');
+
+-- NEW: role enum
+CREATE TYPE user_role AS ENUM ('user', 'super_user');
 
 -- USERS
 CREATE TABLE "user"
@@ -15,7 +22,8 @@ CREATE TABLE "user"
     aura            INT         DEFAULT 0,
     bio             TEXT,
     profile_picture TEXT,
-    account_status  user_status DEFAULT 'offline'
+    account_status  user_status DEFAULT 'offline',
+    role            user_role   NOT NULL DEFAULT 'user'   -- NEW COLUMN
 );
 
 -- COMMUNITIES
@@ -118,6 +126,11 @@ CREATE TABLE user_moderates_community
 
 -- Helpful indexes
 CREATE INDEX idx_posts_community ON post (community);
-CREATE INDEX idx_posts_poster ON post (original_poster);
-CREATE INDEX idx_comments_post ON comments (post_id);
+CREATE INDEX idx_posts_poster   ON post (original_poster);
+CREATE INDEX idx_comments_post  ON comments (post_id);
 CREATE INDEX idx_comments_parent ON comments (parent_id);
+
+-- OPTIONAL: promote specific users to super_user later (adjust the list as you wish)
+-- UPDATE "user"
+-- SET role = 'super_user'
+-- WHERE username IN ('kai', 'simon', 'anna', 'maria');
