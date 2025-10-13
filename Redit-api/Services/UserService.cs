@@ -11,11 +11,13 @@ namespace Redit_api.Services
     {
         private readonly IUserRepository _repository;
         private readonly IPasswordHasher<UserDTO> _hasher;
+        private readonly ITokenService _tokens;
 
-        public UserService(IUserRepository repository, IPasswordHasher<UserDTO> hasher)
+        public UserService(IUserRepository repository, IPasswordHasher<UserDTO> hasher, ITokenService tokens)
         {
             _repository = repository;
             _hasher = hasher;
+            _tokens = tokens;
         }
 
         public async Task<(bool Success, string? Error, object? UserData)> SignupAsync(UserSignupDTO dto, CancellationToken ct)
@@ -63,6 +65,45 @@ namespace Redit_api.Services
             {
                 return (false, $"Database error: {ex.Message}", null);
             }
+        }
+        
+        public async Task<(bool Success, string? Error, string? Token, object? UserData)>
+            LoginAsync(UserLoginDTO dto, CancellationToken ct)
+        {
+            var email = dto.Email.Trim().ToLowerInvariant();
+            var user = await _repository.GetByEmailAsync(email, ct);
+            if (user == null)
+                return (false, "Invalid email or password.", null, null);
+
+            var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
+            if (result == PasswordVerificationResult.Failed)
+                return (false, "Invalid email or password.", null, null);
+
+            var token = _tokens.CreateToken(user);
+
+            var safe = new
+            {
+                user.Username,
+                user.Name,
+                user.Email,
+                user.Age,
+                user.Aura,
+                user.Bio,
+                user.ProfilePicture,
+                AccountStatus = user.AccountStatus.ToString()
+            };
+
+            return (true, null, token, safe);
+        }
+        
+        public async Task<(bool Success, string? Error)> SetStatusAsync(string username, UserStatus status, CancellationToken ct)
+        {
+            var user = await _repository.GetByUsernameAsync(username.Trim().ToLowerInvariant(), ct);
+            if (user == null) return (false, "User not found.");
+
+            user.AccountStatus = status;
+            await _repository.UpdateAsync(user, ct);
+            return (true, null);
         }
     }
 }
