@@ -2,13 +2,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using Redit_api.Models;
+using Redit_api.Models; // UserDTO
+using Redit_api.Models.Status; // UserRole
 
 namespace Redit_api.Services
 {
     public interface ITokenService
     {
-        string CreateToken(User user);
+        string CreateToken(UserDTO user);
     }
 
     public class TokenService : ITokenService
@@ -26,23 +27,35 @@ namespace Redit_api.Services
             _expiresMinutes = int.TryParse(config["JWT:ExpiresMinutes"], out var m) ? m : 60;
         }
 
-        public string CreateToken(User user)
+        public string CreateToken(UserDTO user)
         {
+            var now = DateTime.UtcNow;
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);
+
+            // Normalize enum -> "user" or "superuser" for [Authorize(Roles="...")]
+            string roleString = user.Role == UserRole.SuperUser ? "superuser" : "user";
 
             var claims = new List<Claim>
             {
                 new(JwtRegisteredClaimNames.Sub, user.Email),
                 new(JwtRegisteredClaimNames.Email, user.Email),
-                new("name", user.Name ?? string.Empty)
+                new("name", user.Name ?? string.Empty),
+
+                // uniqueness
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(JwtRegisteredClaimNames.Iat,
+                    new DateTimeOffset(now).ToUnixTimeSeconds().ToString(),
+                    ClaimValueTypes.Integer64),
+
+                new(ClaimTypes.Role, roleString)
             };
 
             var token = new JwtSecurityToken(
                 issuer: _issuer,
                 audience: _audience,
                 claims: claims,
-                notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddMinutes(_expiresMinutes),
+                notBefore: now,
+                expires: now.AddMinutes(_expiresMinutes),
                 signingCredentials: creds
             );
 
