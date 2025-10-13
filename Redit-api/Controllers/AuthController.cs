@@ -6,11 +6,11 @@ namespace Redit_api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController : ControllerBase
+    public class AuthController : ControllerBase
     {
         private readonly IUserService _service;
 
-        public UserController(IUserService service)
+        public AuthController(IUserService service)
         {
             _service = service;
         }
