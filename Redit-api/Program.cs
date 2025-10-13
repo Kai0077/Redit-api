@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Redit_api.Data;
 using Redit_api.Models;
-using Redit_api.Models.Status;
+using Redit_api.Models.Status; // UserStatus, UserRole
 using Redit_api.Repositories;
 using Redit_api.Repositories.Interfaces;
 using Redit_api.Services;
@@ -28,9 +28,7 @@ var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 var connectionString =
     $"Host={host};Port={port};Database={database};Username={user};Password={password};Ssl Mode=Disable";
 
-// ==========================================
-// JWT Authentication Setup
-// ==========================================
+// ======================= JWT Authentication =======================
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -45,26 +43,27 @@ builder.Services
 
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])
+                Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!)
             ),
 
-            ValidateLifetime = true, // ensures the token isn't expired
+            ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(30)
         };
     });
 
 builder.Services.AddAuthorization();
 
-// ==========================================
-// Database + Enum Mapping
-// ==========================================
+// ======================= Database + Enum Mapping =======================
 builder.Services.AddDbContext<AppDBContext>(opts =>
     opts.UseNpgsql(connectionString, npgsql =>
-        npgsql.MapEnum<UserStatus>("user_status")));
+    {
+        // Map C# enums to PostgreSQL enums
+        npgsql.MapEnum<UserStatus>("user_status");
+        npgsql.MapEnum<UserRole>("user_role");
+    })
+);
 
-// ==========================================
-// MVC, JSON, Swagger, DI
-// ==========================================
+// ======================= MVC, JSON, Swagger, DI =======================
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
     // serialize enums as strings
@@ -74,26 +73,23 @@ builder.Services.AddControllers().AddJsonOptions(o =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher<UserDTO>, PasswordHasher<UserDTO>>();
 
-// Optional: allow frontend access if using Vite/React/etc.
+// Optional CORS for your frontend
 // builder.Services.AddCors(options =>
 // {
 //     options.AddDefaultPolicy(policy =>
-//         policy.WithOrigins("http://localhost:5173") // your frontend URL
+//         policy.WithOrigins("http://localhost:5173")
 //               .AllowAnyHeader()
 //               .AllowAnyMethod());
 // });
 
 var app = builder.Build();
 
-// ==========================================
-// Middleware Pipeline
-// ==========================================
+// ======================= Middleware Pipeline =======================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -101,10 +97,10 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection();
-// app.UseCors(); // enable if needed
+// app.UseCors();
 
-app.UseAuthentication();   // <-- validates JWT tokens
-app.UseAuthorization();    // <-- enforces [Authorize] attributes
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

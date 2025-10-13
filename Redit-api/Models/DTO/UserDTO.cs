@@ -39,6 +39,9 @@ namespace Redit_api.Models
 
         [Column("account_status")]
         public UserStatus AccountStatus { get; set; } = UserStatus.Offline;
+        
+        [Column("role")]
+        public UserRole Role { get; set; } = UserRole.User;
 
     }
 }
