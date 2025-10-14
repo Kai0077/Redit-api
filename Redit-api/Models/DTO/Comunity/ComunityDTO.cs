@@ -8,7 +8,6 @@ namespace Redit_api.Models.DTO
     {
         [Key]
         [Column("name")]
-        [MaxLength(100)]
         public string Name { get; set; }
 
         [Column("description")]
@@ -21,14 +20,6 @@ namespace Redit_api.Models.DTO
         public string? OwnerUsername { get; set; }
 
         [Column("pinned_post_ids")]
-        public int[] PinnedPostIds { get; set; } = Array.Empty<int>();
-
-        // Ignore these for now (they represent relationships you’ll define later)
-        [NotMapped] public Post[]? Posts { get; set; }
-        [NotMapped] public User[]? Members { get; set; }
-        [NotMapped] public Post[]? Pinned { get; set; }
-        [NotMapped] public User? Owner { get; set; }
-        [NotMapped] public User[]? Admins { get; set; }
-        [NotMapped] public User[]? Moderators { get; set; }
+        public int[]? PinnedPostIds { get; set; }
     }
 }

@@ -1,4 +1,3 @@
-// Repositories/Interfaces/IPostRepository.cs
 using Redit_api.Models;
 
 namespace Redit_api.Repositories.Interfaces
@@ -13,5 +12,7 @@ namespace Redit_api.Repositories.Interfaces
         Task<bool> CommunityExistsAsync(string communityName, CancellationToken ct);
         Task<string?> GetUsernameByEmailAsync(string email, CancellationToken ct);
         Task<UserDTO?> GetUserByEmailAsync(string email, CancellationToken ct);
+        Task<IEnumerable<PostDTO>> GetAllAsync(CancellationToken ct);        
+        Task<IEnumerable<PostDTO>> GetByUserAsync(string username, CancellationToken ct); 
     }
 }

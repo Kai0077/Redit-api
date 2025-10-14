@@ -18,11 +18,15 @@ namespace Redit_api.Controllers
             _service = service;
         }
 
+        // ==========================================
+        // CREATE POST (requires login)
+        // ==========================================
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PostCreateDTO dto, CancellationToken ct)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid) 
+                return ValidationProblem(ModelState);
 
             var email = User.FindFirstValue(ClaimTypes.Email)
                         ?? User.FindFirst("email")?.Value
@@ -32,11 +36,15 @@ namespace Redit_api.Controllers
                 return Unauthorized(new { message = "Missing email claim." });
 
             var (ok, err, data) = await _service.CreateAsync(email, dto, ct);
-            if (!ok) return BadRequest(new { message = err });
+            if (!ok) 
+                return BadRequest(new { message = err });
 
             return CreatedAtAction(nameof(GetById), new { id = ((dynamic)data).Id }, data);
         }
 
+        // ==========================================
+        // UPDATE POST (requires owner or superuser)
+        // ==========================================
         [Authorize]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] PostUpdateDTO dto, CancellationToken ct)
@@ -49,11 +57,15 @@ namespace Redit_api.Controllers
                 return Unauthorized(new { message = "Missing email claim." });
 
             var (ok, err, data) = await _service.UpdateAsync(email, id, dto, ct);
-            if (!ok) return BadRequest(new { message = err });
+            if (!ok) 
+                return BadRequest(new { message = err });
 
             return Ok(data);
         }
 
+        // ==========================================
+        // DELETE POST (requires owner or superuser)
+        // ==========================================
         [Authorize]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
@@ -66,11 +78,56 @@ namespace Redit_api.Controllers
                 return Unauthorized(new { message = "Missing email claim." });
 
             var (ok, err) = await _service.DeleteAsync(email, id, ct);
-            if (!ok) return BadRequest(new { message = err });
+            if (!ok) 
+                return BadRequest(new { message = err });
 
             return NoContent();
         }
 
+        // ==========================================
+        // GET ALL POSTS (public) only for superusers
+        // ==========================================
+        [Authorize(Roles = "super_user")]
+        [HttpGet] // GET /api/posts
+        public async Task<IActionResult> GetAll(CancellationToken ct)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email)
+                        ?? User.FindFirst("email")?.Value
+                        ?? User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(email))
+                return Unauthorized(new { message = "Missing email claim." });
+
+            var (ok, err, data) = await _service.GetAllAsync(ct);
+            if (!ok)
+                return BadRequest(new { message = err });
+
+            return Ok(data);
+        }
+
+        // ==========================================
+        // GET POSTS BY LOGGED-IN USER
+        // ==========================================
+        [Authorize]
+        [HttpGet("user")] // GET /api/posts/user
+        public async Task<IActionResult> GetUserPosts(CancellationToken ct)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email)
+                        ?? User.FindFirst("email")?.Value
+                        ?? User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(email))
+                return Unauthorized(new { message = "Missing email claim." });
+
+            var (ok, err, data) = await _service.GetByUserAsync(email, ct);
+            if (!ok) return BadRequest(new { message = err });
+            return Ok(data);
+        }
+
+        // ==========================================
+        // GET POST BY ID
+        // ==========================================
+        [AllowAnonymous]
         [HttpGet("{id:int}")]
         public IActionResult GetById([FromRoute] int id)
         {

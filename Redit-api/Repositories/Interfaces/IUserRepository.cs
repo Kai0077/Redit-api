@@ -9,7 +9,6 @@ namespace Redit_api.Repositories.Interfaces
         Task<UserDTO?> GetByUsernameAsync(string username, CancellationToken ct);
         Task<UserDTO?> GetByEmailAsync(string email, CancellationToken ct);
         Task<UserDTO> CreateAsync(UserDTO user, CancellationToken ct);
-        
         Task UpdateAsync(UserDTO user, CancellationToken ct);
     }
 }
