@@ -1,4 +1,3 @@
-// Services/PostService.cs
 using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
@@ -124,6 +123,32 @@ namespace Redit_api.Services
 
             await _posts.DeleteAsync(post, ct);
             return (true, null);
+        }
+        
+        // Services/PostService.cs  (add these methods; keep your existing Create/Update/Delete)
+        public async Task<(bool Success, string? Error, IEnumerable<object>? Data)> GetAllAsync(CancellationToken ct)
+        {
+            var posts = await _posts.GetAllAsync(ct);
+            var shaped = posts.Select(p => new {
+                p.Id, p.Title, p.Description, p.Aura, p.OriginalPoster, p.Community, p.Embeds,
+                Status = p.Status.ToString()
+            });
+            return (true, null, shaped);
+        }
+
+        public async Task<(bool Success, string? Error, IEnumerable<object>? Data)> GetByUserAsync(
+            string requesterEmail, CancellationToken ct)
+        {
+            var username = await _posts.GetUsernameByEmailAsync(requesterEmail, ct);
+            if (string.IsNullOrEmpty(username))
+                return (false, "User not found.", null);
+
+            var posts = await _posts.GetByUserAsync(username, ct);
+            var shaped = posts.Select(p => new {
+                p.Id, p.Title, p.Description, p.Aura, p.OriginalPoster, p.Community, p.Embeds,
+                Status = p.Status.ToString()
+            });
+            return (true, null, shaped);
         }
     }
 }

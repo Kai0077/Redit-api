@@ -26,7 +26,6 @@ namespace Redit_api.Models
         [Column("original_poster")]
         public string OriginalPoster { get; set; }
 
-        // Optional FK to community.name
         [MaxLength(100)]
         [Column("community")]
         public string? Community { get; set; }
