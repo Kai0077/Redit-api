@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Redit_api.Data;
 using Redit_api.Models;
-using Redit_api.Models.Status; // UserStatus, UserRole
+using Redit_api.Models.Status;
 using Redit_api.Repositories;
 using Redit_api.Repositories.Interfaces;
 using Redit_api.Services;
@@ -81,14 +81,20 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher<UserDTO>, PasswordHasher<UserDTO>>();
 
-// Optional CORS for your frontend
-// builder.Services.AddCors(options =>
-// {
-//     options.AddDefaultPolicy(policy =>
-//         policy.WithOrigins("http://localhost:5173")
-//               .AllowAnyHeader()
-//               .AllowAnyMethod());
-// });
+// ======================= CORS CONFIG =======================
+var clientLocal = Environment.GetEnvironmentVariable("CLIENT_URL_LOCAL");
+var clientDeploy = Environment.GetEnvironmentVariable("CLIENT_URL_DEPLOY");
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowClient", policy =>
+    {
+        policy.WithOrigins(clientLocal!, clientDeploy!)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -100,7 +106,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection();
-// app.UseCors();
+app.UseCors("AllowClient");
 
 app.UseAuthentication();
 app.UseAuthorization();
