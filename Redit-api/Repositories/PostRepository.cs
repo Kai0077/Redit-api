@@ -33,14 +33,8 @@ namespace Redit_api.Repositories
             await _db.SaveChangesAsync(ct);
         }
 
-        public async Task<bool> CommunityExistsAsync(string communityName, CancellationToken ct)
-        {
-            var count = await _db.Database
-                .SqlQueryRaw<int>(@"SELECT COUNT(*)::int FROM community WHERE name = {0}", communityName)
-                .SingleAsync(ct);
-
-            return count > 0;
-        }
+        public Task<bool> CommunityExistsAsync(string communityName, CancellationToken ct) =>
+            _db.Communities.AnyAsync(c => c.Name == communityName, ct);
 
         public Task<string?> GetUsernameByEmailAsync(string email, CancellationToken ct) =>
             _db.Users.Where(u => u.Email == email)
@@ -49,5 +43,16 @@ namespace Redit_api.Repositories
 
         public Task<UserDTO?> GetUserByEmailAsync(string email, CancellationToken ct) =>
             _db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
+        
+        public async Task<IEnumerable<PostDTO>> GetAllAsync(CancellationToken ct) =>
+            await _db.Posts
+                .OrderByDescending(p => p.Id)
+                .ToListAsync(ct);
+
+        public async Task<IEnumerable<PostDTO>> GetByUserAsync(string username, CancellationToken ct) =>
+            await _db.Posts
+                .Where(p => p.OriginalPoster == username)
+                .OrderByDescending(p => p.Id)
+                .ToListAsync(ct);
     }
 }

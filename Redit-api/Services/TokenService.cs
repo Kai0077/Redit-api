@@ -2,8 +2,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using Redit_api.Models; // UserDTO
-using Redit_api.Models.Status; // UserRole
+using Redit_api.Models;            // UserDTO
+using Redit_api.Models.Status;     // UserRole
 
 namespace Redit_api.Services
 {
@@ -32,8 +32,8 @@ namespace Redit_api.Services
             var now = DateTime.UtcNow;
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);
 
-            // Normalize enum -> "user" or "superuser" for [Authorize(Roles="...")]
-            string roleString = user.Role == UserRole.SuperUser ? "superuser" : "user";
+            // IMPORTANT: match your [Authorize(Roles = "super_user")] exactly
+            var roleString = user.Role == UserRole.SuperUser ? "super_user" : "user";
 
             var claims = new List<Claim>
             {
@@ -41,12 +41,13 @@ namespace Redit_api.Services
                 new(JwtRegisteredClaimNames.Email, user.Email),
                 new("name", user.Name ?? string.Empty),
 
-                // uniqueness
+                // Make token unique
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new(JwtRegisteredClaimNames.Iat,
                     new DateTimeOffset(now).ToUnixTimeSeconds().ToString(),
                     ClaimValueTypes.Integer64),
 
+                // Role claim used by [Authorize(Roles = "...")]
                 new(ClaimTypes.Role, roleString)
             };
 
