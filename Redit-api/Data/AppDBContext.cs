@@ -12,13 +12,14 @@ namespace Redit_api.Data
         }
 
         public DbSet<UserDTO> Users => Set<UserDTO>();
-        public DbSet<Post> Posts => Set<Post>();
+        public DbSet<PostDTO> Posts => Set<PostDTO>();
         public DbSet<Comment> Comments => Set<Comment>();
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasPostgresEnum<UserStatus>("user_status");
             modelBuilder.HasPostgresEnum<UserRole>("user_role");
+            modelBuilder.HasPostgresEnum<PostStatus>("post_status");
 
             modelBuilder.Entity<UserDTO>(b =>
             {
