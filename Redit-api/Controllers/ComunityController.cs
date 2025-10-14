@@ -18,8 +18,10 @@ namespace Redit_api.Controllers
             User.FindFirstValue(ClaimTypes.Email) ??
             User.FindFirst("email")?.Value ??
             User.FindFirst("sub")?.Value;
-
+        
+        // ==========================================
         // POST /api/communities
+        // ==========================================
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CommunityCreateDTO dto, CancellationToken ct)
@@ -34,8 +36,10 @@ namespace Redit_api.Controllers
             var c = (dynamic)data!;
             return CreatedAtAction(nameof(Get), new { name = c.Name }, data);
         }
-
+        
+        // ==========================================
         // GET /api/communities/{name}
+        // ==========================================
         [AllowAnonymous]
         [HttpGet("{name}")]
         public async Task<IActionResult> Get([FromRoute] string name, CancellationToken ct)
@@ -43,8 +47,10 @@ namespace Redit_api.Controllers
             var (ok, err, data) = await _service.GetAsync(name, ct);
             return ok ? Ok(data) : NotFound(new { message = err });
         }
-
+        
+        // ==========================================
         // GET /api/communities  (public, paginated list)
+        // ==========================================
         [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> List([FromQuery] int skip = 0, [FromQuery] int take = 20, CancellationToken ct = default)
@@ -54,7 +60,9 @@ namespace Redit_api.Controllers
             return Ok(data);
         }
 
+        // ==========================================
         // PUT /api/communities/{name}
+        // ==========================================
         [Authorize]
         [HttpPut("{name}")]
         public async Task<IActionResult> Update([FromRoute] string name, [FromBody] CommunityUpdateDTO dto, CancellationToken ct)
@@ -68,7 +76,9 @@ namespace Redit_api.Controllers
             return Ok(data);
         }
 
+        // ==========================================
         // DELETE /api/communities/{name}
+        // ==========================================
         [Authorize]
         [HttpDelete("{name}")]
         public async Task<IActionResult> Delete([FromRoute] string name, CancellationToken ct)
@@ -82,7 +92,9 @@ namespace Redit_api.Controllers
             return NoContent();
         }
 
+        // ==========================================
         // GET /api/communities/all  (superuser-only full list)
+        // ==========================================
         [Authorize(Roles = "super_user")]
         [HttpGet("all")]
         public async Task<IActionResult> GetAll(CancellationToken ct)
@@ -92,7 +104,9 @@ namespace Redit_api.Controllers
             return Ok(data);
         }
 
+        // ==========================================
         // GET /api/communities/user  (communities for logged-in user)
+        // ==========================================
         [Authorize]
         [HttpGet("user")]
         public async Task<IActionResult> GetUserCommunities(CancellationToken ct)

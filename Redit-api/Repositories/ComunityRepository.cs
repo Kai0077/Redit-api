@@ -55,7 +55,8 @@ namespace Redit_api.Repositories
 
         public async Task<List<CommunityDTO>> GetByUserAsync(string username, CancellationToken ct)
         {
-            // Owned OR subscribed (user_communities)
+            // Gets all communities linked to a user — both ones they own and ones they’ve joined.
+            // Using raw SQL here because it’s easier to do the UNION this way than with LINQ.
             return await _db.Communities
                 .FromSqlRaw(@"
                     SELECT c.*
@@ -75,8 +76,6 @@ namespace Redit_api.Repositories
                 .Select(u => u.Username)
                 .FirstOrDefaultAsync(ct);
         
-        
-
         public Task<bool> UserExistsAsync(string username, CancellationToken ct) =>
             _db.Users.AsNoTracking().AnyAsync(u => u.Username == username, ct);
 

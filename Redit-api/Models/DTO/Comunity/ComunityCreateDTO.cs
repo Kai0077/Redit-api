@@ -10,7 +10,6 @@ namespace Redit_api.Models.DTO
         public string? Description { get; set; }
         public string? ProfilePicture { get; set; }
 
-        // Optional — if null, we'll set owner from the JWT user
         public string? OwnerUsername { get; set; }
     }
 }
