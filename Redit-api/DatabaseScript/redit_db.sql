@@ -1,8 +1,6 @@
--- Create DB (run once from a superuser, or skip if DB already exists)
-CREATE DATABASE redit_db;
+DROP DATABASE IF EXISTS redit_db;
 
--- Switch to the DB if needed (psql only)
--- \c redit_db
+CREATE DATABASE redit_db;
 
 -- ENUM types
 CREATE TYPE user_status AS ENUM ('online', 'idle', 'offline', 'invisible', 'do_not_disturb');
