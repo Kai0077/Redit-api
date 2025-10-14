@@ -60,6 +60,7 @@ builder.Services.AddDbContext<AppDBContext>(opts =>
         // Map C# enums to PostgreSQL enums
         npgsql.MapEnum<UserStatus>("user_status");
         npgsql.MapEnum<UserRole>("user_role");
+        npgsql.MapEnum<PostStatus>("post_status");
     })
 );
 
@@ -72,7 +73,9 @@ builder.Services.AddControllers().AddJsonOptions(o =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+// after other AddScoped lines
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
