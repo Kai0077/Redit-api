@@ -8,5 +8,8 @@ namespace Redit_api.Services.Interfaces
         Task<(bool Success, string? Error, object? Data)> CreateAsync(string requesterEmail, PostCreateDTO dto, CancellationToken ct);
         Task<(bool Success, string? Error, object? Data)> UpdateAsync(string requesterEmail, int id, PostUpdateDTO dto, CancellationToken ct);
         Task<(bool Success, string? Error)> DeleteAsync(string requesterEmail, int id, CancellationToken ct);
+        Task<(bool Success, string? Error, IEnumerable<object>? Data)> GetAllAsync(CancellationToken ct);              
+        Task<(bool Success, string? Error, IEnumerable<object>? Data)> GetByUserAsync(string requesterEmail, CancellationToken ct); 
+        
     }
 }

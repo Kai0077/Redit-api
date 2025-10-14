@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Redit_api.Models;
+using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
 
 namespace Redit_api.Data
@@ -8,13 +9,20 @@ namespace Redit_api.Data
     {
         public AppDBContext(DbContextOptions<AppDBContext> options) : base(options)
         {
-            
         }
 
+        // ==============================
+        // DbSets
+        // ==============================
         public DbSet<UserDTO> Users => Set<UserDTO>();
         public DbSet<PostDTO> Posts => Set<PostDTO>();
         public DbSet<Comment> Comments => Set<Comment>();
+        public DbSet<CommunityDTO> Communities => Set<CommunityDTO>();
         
+
+        // ==============================
+        // Model Configuration
+        // ==============================
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasPostgresEnum<UserStatus>("user_status");
@@ -32,6 +40,25 @@ namespace Redit_api.Data
                 b.Property(u => u.Role)
                     .HasColumnName("role")
                     .HasColumnType("user_role");
+            });
+
+            modelBuilder.Entity<CommunityDTO>(b =>
+            {
+                b.ToTable("community", "public");
+                b.HasKey(c => c.Name);                 // ⬅️ make key explicit
+                b.Property(c => c.Name).HasColumnName("name").HasMaxLength(100);
+                b.Property(c => c.Description).HasColumnName("description");
+                b.Property(c => c.ProfilePicture).HasColumnName("profile_picture");
+                b.Property(c => c.OwnerUsername).HasColumnName("owner_username").HasMaxLength(50);
+                b.Property(c => c.PinnedPostIds).HasColumnName("pinned_post_ids");
+            });
+
+            modelBuilder.Entity<PostDTO>(b =>
+            {
+                b.ToTable("post", "public");
+                // Ensure enum column maps to the Postgres enum type
+                b.Property(p => p.Status).HasColumnType("post_status");   // ⬅️ helpful
+                // Optional: if community is nullable in DB (profile posts), leave it as is
             });
         }
     }
