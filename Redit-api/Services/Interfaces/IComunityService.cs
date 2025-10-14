@@ -1,4 +1,3 @@
-// Services/Interfaces/ICommunityService.cs
 using Redit_api.Models.DTO;
 
 namespace Redit_api.Services.Interfaces
