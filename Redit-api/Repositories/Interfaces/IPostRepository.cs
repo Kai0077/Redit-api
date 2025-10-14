@@ -1,4 +1,3 @@
-// Repositories/Interfaces/IPostRepository.cs
 using Redit_api.Models;
 
 namespace Redit_api.Repositories.Interfaces

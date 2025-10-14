@@ -1,4 +1,3 @@
-// Services/Interfaces/IPostService.cs
 using Redit_api.Models.DTO;
 
 namespace Redit_api.Services.Interfaces

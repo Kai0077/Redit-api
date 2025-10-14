@@ -1,4 +1,3 @@
-// Repositories/CommunityRepository.cs
 using Microsoft.EntityFrameworkCore;
 using Redit_api.Data;
 using Redit_api.Models;
