@@ -40,6 +40,7 @@ namespace Redit_api.Services
                 Aura = 0,
                 Bio = null,
                 ProfilePicture = null,
+                Role = UserRole.User,
 
             };
 
@@ -57,7 +58,8 @@ namespace Redit_api.Services
                     created.Aura,
                     created.Bio,
                     created.ProfilePicture,
-                    AccountStatus = created.AccountStatus
+                    AccountStatus = created.AccountStatus,
+                    created.Role,
                 };
                 return (true, null, result);
             }
@@ -90,7 +92,8 @@ namespace Redit_api.Services
                 user.Aura,
                 user.Bio,
                 user.ProfilePicture,
-                AccountStatus = user.AccountStatus.ToString()
+                AccountStatus = user.AccountStatus.ToString(),
+                user.Role
             };
 
             return (true, null, token, safe);
