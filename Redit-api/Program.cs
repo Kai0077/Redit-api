@@ -82,6 +82,8 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher<UserDTO>, PasswordHasher<UserDTO>>();
 builder.Services.AddScoped<ICommunityRepository, CommunityRepository>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 
 // ======================= CORS CONFIG =======================
 var clientLocal = Environment.GetEnvironmentVariable("CLIENT_URL_LOCAL");
