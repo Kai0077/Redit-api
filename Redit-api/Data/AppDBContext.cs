@@ -16,7 +16,7 @@ namespace Redit_api.Data
         // ==============================
         public DbSet<UserDTO> Users => Set<UserDTO>();
         public DbSet<PostDTO> Posts => Set<PostDTO>();
-        public DbSet<Comment> Comments => Set<Comment>();
+        public DbSet<CommentDTO> Comments => Set<CommentDTO>();
         public DbSet<CommunityDTO> Communities => Set<CommunityDTO>();
         
 
