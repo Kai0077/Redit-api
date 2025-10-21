@@ -6,10 +6,11 @@ namespace Redit_api.Models.DTO
 {
     public class PostCreateDTO
     {
-        [Required, MaxLength(200)]
-        public string Title { get; set; }
+        [Required, MaxLength(200)] 
+        public string Title { get; set; } = default!;
 
-        public string? Description { get; set; }
+        [Required]
+        public string? DescriptionHtml { get; set; } = default!;
 
         [MaxLength(100)]
         public string? Community { get; set; }
