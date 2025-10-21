@@ -41,7 +41,6 @@ namespace Redit_api.Services
                 Bio = null,
                 ProfilePicture = null,
                 Role = UserRole.User,
-
             };
 
             user.PasswordHash = _hasher.HashPassword(user, dto.Password);
@@ -58,7 +57,7 @@ namespace Redit_api.Services
                     created.Aura,
                     created.Bio,
                     created.ProfilePicture,
-                    AccountStatus = created.AccountStatus,
+                    AccountStatus = created.AccountStatus, // enum serialized as string by JSON options
                     created.Role,
                 };
                 return (true, null, result);
@@ -68,7 +67,7 @@ namespace Redit_api.Services
                 return (false, $"Database error: {ex.Message}", null);
             }
         }
-        
+
         public async Task<(bool Success, string? Error, string? Token, object? UserData)>
             LoginAsync(UserLoginDTO dto, CancellationToken ct)
         {
@@ -98,7 +97,7 @@ namespace Redit_api.Services
 
             return (true, null, token, safe);
         }
-        
+
         public async Task<(bool Success, string? Error)> SetStatusAsync(string username, UserStatus status, CancellationToken ct)
         {
             var user = await _repository.GetByUsernameAsync(username.Trim().ToLowerInvariant(), ct);
@@ -107,6 +106,75 @@ namespace Redit_api.Services
             user.AccountStatus = status;
             await _repository.UpdateAsync(user, ct);
             return (true, null);
+        }
+
+        // ===== Admin & Relations =====
+
+        public async Task<(bool Success, string? Error, IEnumerable<object>? Users)> GetAllUsersAsync(CancellationToken ct)
+        {
+            var users = await _repository.GetAllAsync(ct);
+            var shaped = users.Select(u => new
+            {
+                u.Username,
+                u.Name,
+                u.Email,
+                u.Age,
+                u.Aura,
+                u.Bio,
+                u.ProfilePicture,
+                AccountStatus = u.AccountStatus.ToString(),
+                Role = u.Role.ToString().ToLower()
+            });
+            return (true, null, shaped);
+        }
+
+        public async Task<(bool Success, string? Error)> DeleteUserAsync(string requesterEmail, string targetUsername, CancellationToken ct)
+        {
+            var requester = await _repository.GetByEmailAsync(requesterEmail.Trim().ToLowerInvariant(), ct);
+            if (requester == null) return (false, "Requester not found.");
+
+            var target = await _repository.GetByUsernameAsync(targetUsername.Trim().ToLowerInvariant(), ct);
+            if (target == null) return (false, "Target user not found.");
+
+            var isSelf = string.Equals(requester.Username, target.Username, StringComparison.OrdinalIgnoreCase);
+            var isSuper = requester.Role == UserRole.SuperUser;
+
+            if (!isSelf && !isSuper) return (false, "Forbidden.");
+
+            await _repository.DeleteAsync(target.Username, ct);
+            return (true, null);
+        }
+
+        public async Task<(bool Success, string? Error, IEnumerable<object>? Users)> GetFollowersAsync(string username, CancellationToken ct)
+        {
+            var exists = await _repository.GetByUsernameAsync(username.Trim().ToLowerInvariant(), ct);
+            if (exists == null) return (false, "User not found.", null);
+
+            var list = await _repository.GetFollowersAsync(username, ct);
+            var shaped = list.Select(u => new
+            {
+                u.Username,
+                u.Name,
+                u.Aura,
+                u.ProfilePicture
+            });
+            return (true, null, shaped);
+        }
+
+        public async Task<(bool Success, string? Error, IEnumerable<object>? Users)> GetFollowingAsync(string username, CancellationToken ct)
+        {
+            var exists = await _repository.GetByUsernameAsync(username.Trim().ToLowerInvariant(), ct);
+            if (exists == null) return (false, "User not found.", null);
+
+            var list = await _repository.GetFollowingAsync(username, ct);
+            var shaped = list.Select(u => new
+            {
+                u.Username,
+                u.Name,
+                u.Aura,
+                u.ProfilePicture
+            });
+            return (true, null, shaped);
         }
     }
 }
