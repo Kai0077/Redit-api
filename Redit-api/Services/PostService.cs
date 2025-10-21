@@ -3,6 +3,7 @@ using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
 using Redit_api.Repositories.Interfaces;
 using Redit_api.Services.Interfaces;
+using Redit_api.Services;
 
 namespace Redit_api.Services
 {
@@ -29,11 +30,18 @@ namespace Redit_api.Services
                 var exists = await _posts.CommunityExistsAsync(community, ct);
                 if (!exists) return (false, "Community does not exist.", null);
             }
+            var title = (dto.Title ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(title))
+                return (false, "Title is required.", null);
+
+            var plain = HtmlUtils.HtmlToPlainText(dto.DescriptionHtml);
+            if (string.IsNullOrWhiteSpace(plain))
+                return (false, "Description is required.", null);
 
             var post = new PostDTO
             {
                 Title = dto.Title.Trim(),
-                Description = dto.Description,
+                Description = plain,
                 OriginalPoster = username,
                 Community = community,
                 Embeds = dto.Embeds ?? Array.Empty<string>(),
