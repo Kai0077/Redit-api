@@ -1,11 +1,13 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using DotNetEnv;
+using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Redit_api.Data;
+using Redit_api.FirestoreSync;
 using Redit_api.Models;
 using Redit_api.Models.Status;
 using Redit_api.Repositories;
@@ -27,6 +29,42 @@ var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 
 var connectionString =
     $"Host={host};Port={port};Database={database};Username={user};Password={password};Ssl Mode=Disable";
+
+// ===================== FIRESTORE MIGRATION =====================
+var firestoreKeyPath = Environment.GetEnvironmentVariable("FIRESTORE_KEY_PATH");
+var firestoreProjectId = Environment.GetEnvironmentVariable("FIRESTORE_PROJECT_ID");
+
+if (string.IsNullOrEmpty(firestoreKeyPath) || !File.Exists(firestoreKeyPath))
+{
+    Console.WriteLine($"Firestore key file not found at: {Path.GetFullPath(firestoreKeyPath ?? "(null)")}");
+}
+else
+{
+    Console.WriteLine($"Using Firestore key: {Path.GetFullPath(firestoreKeyPath)}");
+}
+
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", firestoreKeyPath);
+
+var firestoreDb = FirestoreDb.Create(firestoreProjectId);
+Console.WriteLine($"Connected to Firestore project: {firestoreProjectId}");
+
+var migrator = new SqlToFirestoreMigrator(firestoreDb, connectionString);
+
+// ===================== POSTGRESQL SEEDING =====================
+var seedPath = Path.Combine(Directory.GetCurrentDirectory(), "DatabaseScript", "redit_dummy_data.sql");
+
+if (File.Exists(seedPath))
+{
+    Console.WriteLine($"Running seed file: {seedPath}");
+    await SeedExecutor.RunSeedAsync(connectionString, seedPath);
+}
+else
+{
+    Console.WriteLine($"Seed file not found at: {Path.GetFullPath(seedPath)}");
+}
+
+// ===================== FIRESTORE MIGRATION EXECUTION =====================
+await migrator.RunMigrationAsync();
 
 // ======================= JWT Authentication =======================
 builder.Services
