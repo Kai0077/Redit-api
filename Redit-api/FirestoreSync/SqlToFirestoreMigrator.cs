@@ -22,7 +22,8 @@ namespace Redit_api.FirestoreSync
                 "user",
                 "community",
                 "post",
-                "comments"
+                "comments",
+                "user_followers"
             };
 
             foreach (var table in tables)
