@@ -180,7 +180,7 @@ namespace Redit_api.GraphSync
 
                 // ===== USER FOLLOWS =====
                 Console.WriteLine("Migrating user follows...");
-                var followsCmd = new NpgsqlCommand("SELECT follower_username, following_username FROM user_follows;",
+                var followsCmd = new NpgsqlCommand("SELECT follower_username, target_username FROM user_followers;",
                     connection);
                 var followsReader = await followsCmd.ExecuteReaderAsync();
 
@@ -190,7 +190,7 @@ namespace Redit_api.GraphSync
                     var following = followsReader.GetString(1);
 
                     await session.RunAsync(
-                        "MATCH (a:User {username: $follower}), (b:User {username: $following}) " +
+                        "MATCH (a:User {username: $follower}), (b:User {username: $target}) " +
                         "MERGE (a)-[:FOLLOWS]->(b)",
                         new { follower, following });
                 }

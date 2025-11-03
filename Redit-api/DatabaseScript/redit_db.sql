@@ -1,5 +1,4 @@
 DROP DATABASE IF EXISTS redit_db;
-
 CREATE DATABASE redit_db;
 
 -- If you're running this in psql, reconnect after creating the DB:
@@ -80,7 +79,6 @@ CREATE TABLE community_members
     PRIMARY KEY (community_name, username)
 );
 
--- COMMUNITY ADMINS
 CREATE TABLE community_admins
 (
     community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
@@ -88,7 +86,6 @@ CREATE TABLE community_admins
     PRIMARY KEY (community_name, username)
 );
 
--- COMMUNITY MODERATORS
 CREATE TABLE community_moderators
 (
     community_name VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
@@ -106,7 +103,6 @@ CREATE TABLE user_communities
     PRIMARY KEY (username, community_name)
 );
 
--- USER OWNS / ADMINISTRATES / MODERATES COMMUNITIES
 CREATE TABLE user_owns_community
 (
     username       VARCHAR(50)  REFERENCES "user" (username) ON DELETE CASCADE,
@@ -137,43 +133,8 @@ CREATE INDEX idx_comments_post   ON comments (post_id);
 CREATE INDEX idx_comments_parent ON comments (parent_id);
 
 -- =========================
--- FOLLOWERS (the table you’re actually using)
+-- USER FOLLOWERS (the table you’re actually using)
 -- =========================
--- Clean up any legacy name if it exists (optional safety)
-DROP TABLE IF EXISTS user_follows;
-
-CREATE TABLE user_followers
-(
-    target_username  VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE, -- who is being followed
-    follower_username VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE, -- who follows
-    PRIMARY KEY (target_username, follower_username),
-    CHECK (target_username <> follower_username)
-);
-
-CREATE INDEX idx_user_followers_target   ON user_followers (target_username);
-CREATE INDEX idx_user_followers_follower ON user_followers (follower_username);
-
--- =========================
--- Views on followers/following (only usernames)
--- =========================
-CREATE OR REPLACE VIEW v_user_followers AS
-SELECT
-    f.target_username,
-    f.follower_username
-FROM user_followers f;
-
-CREATE OR REPLACE VIEW v_user_following AS
-SELECT
-    f.follower_username AS source_username,
-    f.target_username   AS following_username
-FROM user_followers f;
-
-
--- =========================
--- FOLLOWERS (the table you’re actually using)
--- =========================
--- Clean up any legacy name if it exists (optional safety)
-DROP TABLE IF EXISTS user_follows;
 
 CREATE TABLE user_followers
 (
