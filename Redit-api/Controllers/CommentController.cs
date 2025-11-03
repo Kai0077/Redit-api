@@ -10,8 +10,14 @@ namespace Redit_api.Controllers
     [Route("api/[controller]")]
     public class CommentsController : ControllerBase
     {
+        private readonly ISentryLogger _sentryLogger;
         private readonly ICommentService _service;
-        public CommentsController(ICommentService service) => _service = service;
+
+        public CommentsController(ISentryLogger sentryLogger, ICommentService service)
+        {
+            _sentryLogger = sentryLogger;
+            _service = service;
+        }
 
         // ==========================================
         // HELPERS: GET EMAIL CLAIM FROM JWT
@@ -29,14 +35,29 @@ namespace Redit_api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CommentCreateDTO dto, CancellationToken ct)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            var email = Email(); 
-            if (string.IsNullOrEmpty(email)) return Unauthorized();
+            if (!ModelState.IsValid)
+            {
+                _sentryLogger.Warn("Comment creation validation failed");
+                return ValidationProblem(ModelState);
+            }
+            var email = Email();
+            if (string.IsNullOrEmpty(email))
+            {
+                _sentryLogger.Warn("Unauthorized comment creation attempt");
+                return Unauthorized();
+            }
+            
+            _sentryLogger.Info("Creating comment", $"User: {email}, PostId: {dto.PostId}");
 
             var (ok, err, data) = await _service.CreateAsync(email, dto, ct);
-            if (!ok) return BadRequest(new { message = err });
+            if (!ok)
+            {
+                _sentryLogger.Warn("Comment creation failed", $"User: {email}, Reason: {err}");
+                return BadRequest(new { message = err });
+            }
 
             var c = (dynamic)data!;
+            _sentryLogger.Success("Comment created successfully", $"User: {email}, CommentId: {c.Id}, PostId: {dto.PostId}");
             return CreatedAtAction(nameof(GetById), new { id = c.Id }, data);
         }
 
@@ -48,16 +69,35 @@ namespace Redit_api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] CommentUpdateDTO dto, CancellationToken ct)
         {
-            var email = Email(); 
-            if (string.IsNullOrEmpty(email)) return Unauthorized();
+            var email = Email();
+            if (string.IsNullOrEmpty(email))
+            {
+                _sentryLogger.Warn("Unauthorized comment update attempt");
+                return Unauthorized();
+            }
+            
+            _sentryLogger.Info("Updating comment", $"User: {email}, CommentId: {id}");
 
             var (ok, err, data) = await _service.UpdateAsync(email, id, dto, ct);
             if (!ok)
             {
-                if (string.Equals(err, "Forbidden.", StringComparison.OrdinalIgnoreCase)) return Forbid();
-                if (string.Equals(err, "Not found.", StringComparison.OrdinalIgnoreCase)) return NotFound(new { message = err });
+                if (string.Equals(err, "Forbidden.", StringComparison.OrdinalIgnoreCase))
+                {
+                    _sentryLogger.Warn("Comment update forbidden", $"User: {email}, CommentId: {id}");
+                    return Forbid();
+                }
+
+                if (string.Equals(err, "Not found.", StringComparison.OrdinalIgnoreCase))
+                {
+                    _sentryLogger.Warn("Comment update failed - not found", $"User: {email}, CommentId: {id}");
+                    return NotFound(new { message = err });
+                }
+                
+                _sentryLogger.Warn("Comment update failed", $"User: {email}, CommentId: {id}, Reason: {err}");
                 return BadRequest(new { message = err });
             }
+            
+            _sentryLogger.Success("Comment updated successfully", $"User: {email}, CommentId: {id}");
             return Ok(data);
         }
 
@@ -69,23 +109,42 @@ namespace Redit_api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var email = Email(); 
-            if (string.IsNullOrEmpty(email)) return Unauthorized();
+            var email = Email();
+            if (string.IsNullOrEmpty(email))
+            {
+                _sentryLogger.Warn("Unauthorized comment deletion attempt");
+                return Unauthorized();
+            }
+            
+            _sentryLogger.Info("Deleting comment", $"User: {email}, CommentId: {id}");
 
             var (ok, err) = await _service.DeleteAsync(email, id, ct);
             if (!ok)
             {
-                if (string.Equals(err, "Forbidden.", StringComparison.OrdinalIgnoreCase)) return Forbid();
-                if (string.Equals(err, "Not found.", StringComparison.OrdinalIgnoreCase)) return NotFound(new { message = err });
+                if (string.Equals(err, "Forbidden.", StringComparison.OrdinalIgnoreCase))
+                {
+                    _sentryLogger.Warn("Comment deletion forbidden", $"User: {email}, CommentId: {id}");
+                    return Forbid();
+                }
+
+                if (string.Equals(err, "Not found.", StringComparison.OrdinalIgnoreCase))
+                {
+                    _sentryLogger.Warn("Comment deletion failed - not found", $"User: {email}, CommentId: {id}");
+                    return NotFound(new { message = err });
+                }
+                
+                _sentryLogger.Warn("Comment deletion failed", $"User: {email}, CommentId: {id}, Reason: {err}");
                 return BadRequest(new { message = err });
             }
+            
+            _sentryLogger.Success("Comment deleted successfully", $"User: {email}, CommentId: {id}");
             return NoContent();
         }
 
         // ==========================================
-// GET COMMENTS BY LOGGED-IN USER (paginated)
-// GET /api/comments/user?skip=0&take=20
-// ==========================================
+        // GET COMMENTS BY LOGGED-IN USER (paginated)
+        // GET /api/comments/user?skip=0&take=20
+        // ==========================================
         [Authorize]
         [HttpGet("user")]
         public async Task<IActionResult> GetUserComments(
@@ -93,14 +152,23 @@ namespace Redit_api.Controllers
             [FromQuery] int take = 20, 
             CancellationToken ct = default)
         {
-            var email = Email(); 
-            if (string.IsNullOrEmpty(email)) 
+            var email = Email();
+            if (string.IsNullOrEmpty(email))
+            {
+                _sentryLogger.Warn("Unauthorized user comments fetch attempt");
                 return Unauthorized(new { message = "Missing email claim." });
+            }
+            
+            _sentryLogger.Info("Fetching user comments", $"User: {email}, Skip: {skip}, Take: {take}");
 
             var (ok, err, data) = await _service.GetByUserAsync(email, skip, take, ct);
-            if (!ok) 
+            if (!ok)
+            {
+                _sentryLogger.Warn("Failed to fetch user comments", $"User: {email}, Reason: {err}");
                 return BadRequest(new { message = err });
-
+            }
+            
+            _sentryLogger.Success("Fetched user comments successfully", $"User: {email}, Count: {data?.Count()}");
             return Ok(data);
         }
 
@@ -109,6 +177,10 @@ namespace Redit_api.Controllers
         // GET /api/comments/{id}
         // ==========================================
         [HttpGet("{id:int}")]
-        public IActionResult GetById(int id) => Ok(new { id });
+        public IActionResult GetById(int id)
+        {
+            _sentryLogger.Info("Comment lookup by ID", $"CommentId: {id}");
+            return Ok(new { id });
+        }
     }
 }
