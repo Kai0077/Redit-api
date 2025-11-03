@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
+using Redit_api.Models.Views;
 
 namespace Redit_api.Data
 {
@@ -18,6 +19,9 @@ namespace Redit_api.Data
         public DbSet<PostDTO> Posts => Set<PostDTO>();
         public DbSet<CommentDTO> Comments => Set<CommentDTO>();
         public DbSet<CommunityDTO> Communities => Set<CommunityDTO>();
+        public DbSet<ViewUserFollowers> VUserFollowers => Set<ViewUserFollowers>();
+        public DbSet<ViewUserFollowing> VUserFollowing => Set<ViewUserFollowing>();
+
         
 
         // ==============================
@@ -59,6 +63,18 @@ namespace Redit_api.Data
                 // Ensure enum column maps to the Postgres enum type
                 b.Property(p => p.Status).HasColumnType("post_status");   // ⬅️ helpful
                 // Optional: if community is nullable in DB (profile posts), leave it as is
+            });
+            
+            modelBuilder.Entity<ViewUserFollowers>(b =>
+            {
+                b.ToView("v_user_followers");
+                b.HasNoKey();
+            });
+
+            modelBuilder.Entity<ViewUserFollowing>(b =>
+            {
+                b.ToView("v_user_following");
+                b.HasNoKey();
             });
         }
     }
