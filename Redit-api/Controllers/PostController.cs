@@ -11,10 +11,12 @@ namespace Redit_api.Controllers
     [Route("api/[controller]")]
     public class PostsController : ControllerBase
     {
+        private readonly ISentryLogger _sentryLogger;
         private readonly IPostService _service;
 
-        public PostsController(IPostService service)
+        public PostsController(ISentryLogger sentryLogger, IPostService service)
         {
+            _sentryLogger = sentryLogger;
             _service = service;
         }
 
@@ -25,20 +27,32 @@ namespace Redit_api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PostCreateDTO dto, CancellationToken ct)
         {
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
+            {
+                _sentryLogger.Warn("Invalid model on post creation");
                 return ValidationProblem(ModelState);
+            }
 
             var email = User.FindFirstValue(ClaimTypes.Email)
                         ?? User.FindFirst("email")?.Value
                         ?? User.FindFirst("sub")?.Value;
 
             if (string.IsNullOrEmpty(email))
+            {
+                _sentryLogger.Warn("Missing email claim on post creation");
                 return Unauthorized(new { message = "Missing email claim." });
+            }
+            
+            _sentryLogger.Info("Starting post creation", $"User: {email}");
 
             var (ok, err, data) = await _service.CreateAsync(email, dto, ct);
-            if (!ok) 
+            if (!ok)
+            {
+                _sentryLogger.Warn("Post creation failed", $"User: {email}, Reason: {err}");
                 return BadRequest(new { message = err });
+            }
 
+            _sentryLogger.Success("Post created successfully", $"User: {email}, PostId: {((dynamic)data).Id}");
             return CreatedAtAction(nameof(GetById), new { id = ((dynamic)data).Id }, data);
         }
 
@@ -54,12 +68,21 @@ namespace Redit_api.Controllers
                         ?? User.FindFirst("sub")?.Value;
 
             if (string.IsNullOrEmpty(email))
+            {
+                _sentryLogger.Warn("Missing email claim on post update");
                 return Unauthorized(new { message = "Missing email claim." });
+            }
+            
+            _sentryLogger.Info("Starting post update", $"User: {email}, PostId: {id}");
 
             var (ok, err, data) = await _service.UpdateAsync(email, id, dto, ct);
-            if (!ok) 
+            if (!ok)
+            {
+                _sentryLogger.Warn("Post update failed", $"User: {email}, PostId: {id}, Reason: {err}");
                 return BadRequest(new { message = err });
+            }
 
+            _sentryLogger.Success("Post updated successfully", $"User: {email}, PostId: {id}");
             return Ok(data);
         }
 
@@ -75,12 +98,21 @@ namespace Redit_api.Controllers
                         ?? User.FindFirst("sub")?.Value;
 
             if (string.IsNullOrEmpty(email))
+            {
+                _sentryLogger.Warn("Missing email claim on post deletion");
                 return Unauthorized(new { message = "Missing email claim." });
+            }
+            
+            _sentryLogger.Info("Starting post deletion", $"User: {email}, PostId: {id}");
 
             var (ok, err) = await _service.DeleteAsync(email, id, ct);
-            if (!ok) 
+            if (!ok)
+            {
+                _sentryLogger.Warn("Post deletion failed", $"User: {email}, PostId: {id}, Reason: {err}");
                 return BadRequest(new { message = err });
+            }
 
+            _sentryLogger.Success("Post deleted successfully", $"User: {email}, PostId: {id}");
             return NoContent();
         }
 
@@ -96,12 +128,21 @@ namespace Redit_api.Controllers
                         ?? User.FindFirst("sub")?.Value;
 
             if (string.IsNullOrEmpty(email))
+            {
+                _sentryLogger.Warn("Missing email claim on get all posts");
                 return Unauthorized(new { message = "Missing email claim." });
+            }
+            
+            _sentryLogger.Info("Super user fetching all posts", $"User: {email}");
 
             var (ok, err, data) = await _service.GetAllAsync(ct);
             if (!ok)
+            {
+                _sentryLogger.Warn("Failed to fetch all posts", $"User: {email}, Reason: {err}");
                 return BadRequest(new { message = err });
+            }
 
+            _sentryLogger.Success("Fetched all posts", $"User: {email}, Count: {data?.Count()}");
             return Ok(data);
         }
 
@@ -117,10 +158,21 @@ namespace Redit_api.Controllers
                         ?? User.FindFirst("sub")?.Value;
 
             if (string.IsNullOrEmpty(email))
+            {
+                _sentryLogger.Warn("Missing email claim on get user posts");
                 return Unauthorized(new { message = "Missing email claim." });
+            }
+            
+            _sentryLogger.Info("Fetching user posts", $"User: {email}");
 
             var (ok, err, data) = await _service.GetByUserAsync(email, ct);
-            if (!ok) return BadRequest(new { message = err });
+            if (!ok)
+            {
+                _sentryLogger.Warn("Failed to fetch user posts", $"User: {email}, Reason: {err}");
+                return BadRequest(new { message = err });
+            }
+            
+            _sentryLogger.Success("Fetched user posts", $"User: {email}, Count: {data?.Count()}");
             return Ok(data);
         }
 
@@ -131,7 +183,6 @@ namespace Redit_api.Controllers
         [HttpGet("{id:int}")]
         public IActionResult GetById([FromRoute] int id)
         {
-            // (optional stub for CreatedAtAction)
             return Ok(new { id });
         }
     }

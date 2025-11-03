@@ -23,7 +23,9 @@ VALUES
     ('kai',     'Kai Tsvetkov',    'kai@example.com',     22, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==', 15, 'Full-stack dev and climber', NULL, 'online',          'super_user'),
     ('hanni',   'Hanni Lee',       'hanni@example.com',   24, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==', 10, 'Frontend engineer',           NULL, 'idle',            'super_user'),
     ('wei',     'Wei Zhang',       'wei@example.com',     26, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==',  5, 'Database wizard',             NULL, 'offline',         'super_user'),
-    ('mikkel',  'Mikkel Sørensen', 'mikkel@example.com',  25, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==',  8, 'Sysadmin & hobby drummer',    NULL, 'do_not_disturb',  'super_user');
+    ('mikkel',  'Mikkel Sørensen', 'mikkel@example.com',  25, 'AQAAAAIAAYagAAAAEPh4DT9yH9P5yY+Pp9l3Oq7YQOqZ4qL4PaOKL4rZUt0KkKi9QOBmVqYPrchZgV4qNQ==',  8, 'Sysadmin & hobby drummer',    NULL, 'do_not_disturb',  'super_user'),
+    ('weiadmin', 'Wei Yang', 'wei@gmail.com', 23, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, NULL, NULL, 'offline', 'super_user');
+
 
 -- COMMUNITIES
 INSERT INTO community (name, description, profile_picture, owner_username, pinned_post_ids) VALUES
