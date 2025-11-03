@@ -183,7 +183,6 @@ namespace Redit_api.Controllers
         [HttpGet("{id:int}")]
         public IActionResult GetById([FromRoute] int id)
         {
-            // (optional stub for CreatedAtAction)
             return Ok(new { id });
         }
     }
