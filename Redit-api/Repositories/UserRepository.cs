@@ -71,5 +71,25 @@ namespace Redit_api.Repositories
             ", username)
             .AsNoTracking()
             .ToListAsync(ct);
+        
+        public async Task<List<string>> GetFollowerUsernamesAsync(string username, CancellationToken ct)
+        {
+            // usernames of people who follow {username}
+            return await _db.VUserFollowers
+                .Where(v => v.TargetUsername == username)
+                .Select(v => v.FollowerUsername)
+                .AsNoTracking()
+                .ToListAsync(ct);
+        }
+
+        public async Task<List<string>> GetFollowingUsernamesAsync(string username, CancellationToken ct)
+        {
+            // usernames of people that {username} is following
+            return await _db.VUserFollowing
+                .Where(v => v.SourceUsername == username)
+                .Select(v => v.FollowingUsername)
+                .AsNoTracking()
+                .ToListAsync(ct);
+        }
     }
 }
