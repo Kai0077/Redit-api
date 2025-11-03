@@ -145,36 +145,23 @@ namespace Redit_api.Services
             return (true, null);
         }
 
-        public async Task<(bool Success, string? Error, IEnumerable<object>? Users)> GetFollowersAsync(string username, CancellationToken ct)
+        // FOLLOWERS/FOLLOWING: return ONLY usernames (from DB views)
+        public async Task<(bool Success, string? Error, IEnumerable<string>? Usernames)> GetFollowersAsync(string username, CancellationToken ct)
         {
             var exists = await _repository.GetByUsernameAsync(username.Trim().ToLowerInvariant(), ct);
             if (exists == null) return (false, "User not found.", null);
 
-            var list = await _repository.GetFollowersAsync(username, ct);
-            var shaped = list.Select(u => new
-            {
-                u.Username,
-                u.Name,
-                u.Aura,
-                u.ProfilePicture
-            });
-            return (true, null, shaped);
+            var usernames = await _repository.GetFollowerUsernamesAsync(username, ct);
+            return (true, null, usernames);
         }
 
-        public async Task<(bool Success, string? Error, IEnumerable<object>? Users)> GetFollowingAsync(string username, CancellationToken ct)
+        public async Task<(bool Success, string? Error, IEnumerable<string>? Usernames)> GetFollowingAsync(string username, CancellationToken ct)
         {
             var exists = await _repository.GetByUsernameAsync(username.Trim().ToLowerInvariant(), ct);
             if (exists == null) return (false, "User not found.", null);
 
-            var list = await _repository.GetFollowingAsync(username, ct);
-            var shaped = list.Select(u => new
-            {
-                u.Username,
-                u.Name,
-                u.Aura,
-                u.ProfilePicture
-            });
-            return (true, null, shaped);
+            var usernames = await _repository.GetFollowingUsernamesAsync(username, ct);
+            return (true, null, usernames);
         }
     }
 }
