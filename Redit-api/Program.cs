@@ -22,7 +22,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Load environment variables
 Env.Load("Secret.env");
 
-// Build PostgreSQL connection string
+// ======================= LOGGING SENTRY.IO =======================
+var sentryDsn = Environment.GetEnvironmentVariable("SENTRY_DSN");
+builder.WebHost.UseSentry(option =>
+{
+    option.Dsn = sentryDsn;
+    option.TracesSampleRate = 1.0;
+    option.Environment = builder.Environment.EnvironmentName;
+    option.Debug = builder.Environment.IsDevelopment();
+});
+
+// ======================= POSTGRESQL ENV VARIABLES =======================
 var host = Environment.GetEnvironmentVariable("DB_HOST");
 var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
 var database = Environment.GetEnvironmentVariable("DB_NAME");
@@ -135,7 +145,8 @@ builder.Services.AddControllers().AddJsonOptions(o =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// after other AddScoped lines
+
+// ======================= SERVICE, REPOSITORY & INFRASTRUCTURE REGISTRATION =======================
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -146,6 +157,10 @@ builder.Services.AddScoped<ICommunityRepository, CommunityRepository>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+
+// Sentry logging
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<ISentryLogger, SentryLogger>();
 
 // ======================= CORS CONFIG =======================
 var clientLocal = Environment.GetEnvironmentVariable("CLIENT_URL_LOCAL");
