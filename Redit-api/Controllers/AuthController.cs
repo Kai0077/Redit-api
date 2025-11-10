@@ -40,7 +40,6 @@ namespace Redit_api.Controllers
                 return Conflict(new { message = error });
             }
 
-            _sentryLogger.Success("User signed up successfully", $"Email: {dto.Email}, Username: {dto.Username}");
             return Ok(userData);
         }
 
@@ -65,7 +64,6 @@ namespace Redit_api.Controllers
                 return Unauthorized(new { message = error });
             }
             
-            _sentryLogger.Success("User logged in successfully", $"Email: {dto.Email}");
             return Ok(new { token, user });
         }
         
@@ -90,7 +88,6 @@ namespace Redit_api.Controllers
                 return NotFound(new { message = err });
             }
 
-            _sentryLogger.Success("User logged out successfully", $"Username: {dto.Username}");
             return Ok(new { message = "Logged out. Status set to offline." });
         }
     }
