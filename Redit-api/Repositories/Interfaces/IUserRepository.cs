@@ -11,7 +11,7 @@ namespace Redit_api.Repositories.Interfaces
         Task<UserDTO> CreateAsync(UserDTO user, CancellationToken ct);
         Task UpdateAsync(UserDTO user, CancellationToken ct);
         Task<List<UserDTO>> GetAllAsync(CancellationToken ct);
-        Task DeleteAsync(string username, CancellationToken ct);
+        Task DeleteUserAsync(string username, CancellationToken ct);
         Task<List<UserDTO>> GetFollowersAsync(string username, CancellationToken ct);
         Task<List<UserDTO>> GetFollowingAsync(string username, CancellationToken ct);
         Task<List<string>> GetFollowerUsernamesAsync(string username, CancellationToken ct);

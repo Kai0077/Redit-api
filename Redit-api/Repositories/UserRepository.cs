@@ -41,13 +41,26 @@ namespace Redit_api.Repositories
                      .OrderBy(u => u.Username)
                      .ToListAsync(ct);
 
-        public async Task DeleteAsync(string username, CancellationToken ct)
+        public async Task DeleteUserAsync(string username, CancellationToken ct)
         {
-            // lightweight delete without fetching entire row
-            var stub = new UserDTO { Username = username };
-            _db.Attach(stub);
-            _db.Remove(stub);
-            await _db.SaveChangesAsync(ct);
+            await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+            try
+            {
+                var userExists = await _db.Users.AnyAsync(u => u.Username == username, ct);
+                if (!userExists)
+                    throw new Exception("User not found");
+                
+                await _db.Users
+                    .Where(u => u.Username == username)
+                    .ExecuteDeleteAsync(ct);
+
+                await transaction.CommitAsync(ct);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(ct);
+                throw;
+            }
         }
 
         public Task<List<UserDTO>> GetFollowersAsync(string username, CancellationToken ct) =>
