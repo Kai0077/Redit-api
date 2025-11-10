@@ -141,8 +141,15 @@ namespace Redit_api.Services
 
             if (!isSelf && !isSuper) return (false, "Forbidden.");
 
-            await _repository.DeleteAsync(target.Username, ct);
-            return (true, null);
+            try
+            {
+                await _repository.DeleteUserAsync(target.Username, ct);
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Delete failed: {ex.Message}");
+            }
         }
 
         // FOLLOWERS/FOLLOWING: return ONLY usernames (from DB views)
