@@ -112,6 +112,24 @@ namespace Redit_api.Controllers
 
             return NoContent();
         }
+        
+        // ==========================================
+        // GET ALL POSTS (RANDOM PUBLIC POSTS)
+        // ==========================================
+        [AllowAnonymous]
+        [HttpGet("public")] // GET /api/posts/public
+        public async Task<IActionResult> GetAllPublic(CancellationToken ct)
+        {
+            _sentryLogger.Info("Fetching random posts for users and guests");
+            var (ok, err, data) = await _service.GetAllPublicAsync(ct);
+            if (!ok)
+            {
+                _sentryLogger.Warn("Failed to fetch all posts");
+                return BadRequest(new { message = err });
+            }
+
+            return Ok(data);
+        }
 
         // ==========================================
         // GET ALL POSTS (public) only for superusers
