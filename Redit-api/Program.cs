@@ -77,7 +77,7 @@ else
 }
 
 // ===================== FIRESTORE MIGRATION EXECUTION =====================
-await migrator.RunMigrationAsync();
+//await migrator.RunMigrationAsync();
 
 // ===================== NEO4J MIGRATION =====================
 var neo4JUri = Environment.GetEnvironmentVariable("NEO4J_URI");
@@ -99,7 +99,7 @@ builder.Services.AddSingleton(neo4JDriver);
 var neo4JMigrator = new SqlToNeo4JMigrator(neo4JDriver, connectionString);
 
 // ===================== Neo4J MIGRATION EXECUTION =====================
-await neo4JMigrator.RunMigrationAsync();
+//await neo4JMigrator.RunMigrationAsync();
 
 // ======================= JWT Authentication =======================
 builder.Services

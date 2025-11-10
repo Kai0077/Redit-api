@@ -3,7 +3,6 @@ using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
 using Redit_api.Repositories.Interfaces;
 using Redit_api.Services.Interfaces;
-using Redit_api.Services;
 
 namespace Redit_api.Services
 {
@@ -82,14 +81,15 @@ namespace Redit_api.Services
                 return (false, "Forbidden.", null);
             
             if (!string.IsNullOrWhiteSpace(dto.Title)) post.Title = dto.Title.Trim();
-            if (dto.Description != null) // allow clearing with empty string if you want
+            if (dto.Description != null)
             {
                 var plain = HtmlUtils.HtmlToPlainText(dto.Description);
 
-                post.Description = plain; // store normalized/plaintext description
+                post.Description = plain;
                 
-            }            if (dto.Embeds != null) post.Embeds = dto.Embeds;
+            }
             
+            if (dto.Embeds != null) post.Embeds = dto.Embeds;
             if (dto.Status.HasValue) post.Status = dto.Status.Value;
 
             if (dto.Community != null)
@@ -100,7 +100,7 @@ namespace Redit_api.Services
                     var exists = await _posts.CommunityExistsAsync(community, ct);
                     if (!exists) return (false, "Community does not exist.", null);
                 }
-                post.Community = community; // can set to null for profile post
+                post.Community = community;
             }
 
             await _posts.UpdateAsync(post, ct);
@@ -140,7 +140,6 @@ namespace Redit_api.Services
             return (true, null);
         }
         
-        // Services/PostService.cs  (add these methods; keep your existing Create/Update/Delete)
         public async Task<(bool Success, string? Error, IEnumerable<object>? Data)> GetAllAsync(CancellationToken ct)
         {
             var posts = await _posts.GetAllAsync(ct);

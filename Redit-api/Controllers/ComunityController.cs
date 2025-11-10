@@ -54,7 +54,6 @@ namespace Redit_api.Controllers
             }
 
             var c = (dynamic)data!;
-            _sentryLogger.Success("Community created successfully", $"User: {email}, Name: {c.Name}");
             return CreatedAtAction(nameof(Get), new { name = c.Name }, data);
         }
         
@@ -74,7 +73,6 @@ namespace Redit_api.Controllers
                 return NotFound(new { message = err });
             }
 
-            _sentryLogger.Success("Fetched community successfully", $"Name: {name}");
             return Ok(data);
         }
         
@@ -93,7 +91,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Fetched community list successfully");
             return Ok(data);
         }
 
@@ -120,7 +117,6 @@ namespace Redit_api.Controllers
                 return ForbidOrBadRequest(err);
             }
 
-            _sentryLogger.Success("Community updated successfully", $"User: {email}, Name: {name}");
             return Ok(data);
         }
 
@@ -147,7 +143,6 @@ namespace Redit_api.Controllers
                 return ForbidOrBadRequest(err);
             }
 
-            _sentryLogger.Success("Community deleted successfully", $"User: {email}, Name: {name}");
             return NoContent();
         }
 
@@ -167,7 +162,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Fetched all communities successfully");
             return Ok(data);
         }
 
@@ -194,7 +188,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Fetched user communities successfully", $"User: {email}");
             return Ok(data);
         }
 
