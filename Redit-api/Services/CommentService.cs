@@ -8,7 +8,7 @@ namespace Redit_api.Services
     public class CommentService : ICommentService
     {
         private readonly ICommentRepository _repo;
-        private readonly IUserRepository _users; // optional if you want role checks
+        private readonly IUserRepository _users;
 
         public CommentService(ICommentRepository repo, IUserRepository users)
         {

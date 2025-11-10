@@ -1,4 +1,3 @@
-// Models/DTO/PostUpdateDTO.cs
 using System.ComponentModel.DataAnnotations;
 using Redit_api.Models.Status;
 
