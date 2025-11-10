@@ -138,11 +138,26 @@ namespace Redit_api.Services
 
             var isSelf = string.Equals(requester.Username, target.Username, StringComparison.OrdinalIgnoreCase);
             var isSuper = requester.Role == UserRole.SuperUser;
+            var targetIsSuper = target.Role == UserRole.SuperUser;
+            
+            if (isSelf && isSuper)
+                return (false, "Forbidden: super users cannot delete themselves.");
 
-            if (!isSelf && !isSuper) return (false, "Forbidden.");
+            if (!isSelf && isSuper && targetIsSuper)
+                return (false, "Forbidden: cannot delete another super user.");
 
-            await _repository.DeleteAsync(target.Username, ct);
-            return (true, null);
+            if (!isSelf && !isSuper)
+                return (false, "Forbidden.");
+
+            try
+            {
+                await _repository.DeleteUserAsync(target.Username, ct);
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Delete failed: {ex.Message}");
+            }
         }
 
         // FOLLOWERS/FOLLOWING: return ONLY usernames (from DB views)
