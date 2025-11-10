@@ -57,7 +57,6 @@ namespace Redit_api.Controllers
             }
 
             var c = (dynamic)data!;
-            _sentryLogger.Success("Comment created successfully", $"User: {email}, CommentId: {c.Id}, PostId: {dto.PostId}");
             return CreatedAtAction(nameof(GetById), new { id = c.Id }, data);
         }
 
@@ -97,7 +96,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Comment updated successfully", $"User: {email}, CommentId: {id}");
             return Ok(data);
         }
 
@@ -137,7 +135,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Comment deleted successfully", $"User: {email}, CommentId: {id}");
             return NoContent();
         }
 
@@ -168,7 +165,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Fetched user comments successfully", $"User: {email}, Count: {data?.Count()}");
             return Ok(data);
         }
 

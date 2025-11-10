@@ -38,7 +38,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Fetched all users successfully", $"Count: {users?.Count()}");
             return Ok(users);
         }
 
@@ -75,7 +74,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("User deleted successfully", $"Requester: {requester}, Target: {username}");
             return NoContent();
         }
 
@@ -99,7 +97,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Fetched followers successfully", $"Target: {username}, Count: {users?.Count()}");
             return Ok(users);
         }
 
@@ -123,7 +120,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Fetched following successfully", $"Target: {username}, Count: {users?.Count()}");
             return Ok(users);
         }
     }

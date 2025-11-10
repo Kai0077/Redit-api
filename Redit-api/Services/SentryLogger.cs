@@ -43,9 +43,6 @@ namespace Redit_api.Services
         public void Info(string action, string details = "") =>
             Log(SentryLevel.Info, "INFO", action, details);
 
-        public void Success(string action, string details = "") =>
-            Log(SentryLevel.Info, "SUCCESS", action, details);
-
         public void Warn(string action, string details = "") =>
             Log(SentryLevel.Warning, action, details);
 

@@ -52,7 +52,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
 
-            _sentryLogger.Success("Post created successfully", $"User: {email}, PostId: {((dynamic)data).Id}");
             return CreatedAtAction(nameof(GetById), new { id = ((dynamic)data).Id }, data);
         }
 
@@ -82,7 +81,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
 
-            _sentryLogger.Success("Post updated successfully", $"User: {email}, PostId: {id}");
             return Ok(data);
         }
 
@@ -112,7 +110,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
 
-            _sentryLogger.Success("Post deleted successfully", $"User: {email}, PostId: {id}");
             return NoContent();
         }
 
@@ -142,7 +139,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
 
-            _sentryLogger.Success("Fetched all posts", $"User: {email}, Count: {data?.Count()}");
             return Ok(data);
         }
 
@@ -172,7 +168,6 @@ namespace Redit_api.Controllers
                 return BadRequest(new { message = err });
             }
             
-            _sentryLogger.Success("Fetched user posts", $"User: {email}, Count: {data?.Count()}");
             return Ok(data);
         }
 
