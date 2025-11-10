@@ -43,6 +43,12 @@ namespace Redit_api.Repositories
 
         public Task<UserDTO?> GetUserByEmailAsync(string email, CancellationToken ct) =>
             _db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
+
+        public async Task<IEnumerable<PostDTO>> GetAllPublicAsync(CancellationToken ct) =>
+            await _db.Posts
+                .OrderBy(p => Guid.NewGuid())
+                .Take(100)
+                .ToListAsync(ct);
         
         public async Task<IEnumerable<PostDTO>> GetAllAsync(CancellationToken ct) =>
             await _db.Posts
