@@ -139,12 +139,36 @@ namespace Redit_api.Services
             await _posts.DeleteAsync(post, ct);
             return (true, null);
         }
+
+        public async Task<(bool Success, string? Error, IEnumerable<object?> Data)> GetAllPublicAsync(CancellationToken ct)
+        {
+            var posts = await _posts.GetAllPublicAsync(ct);
+            var shaped = posts.Select(p => new
+            {
+                p.Id, 
+                p.Title, 
+                p.Description, 
+                p.Aura, 
+                p.OriginalPoster, 
+                p.Community, 
+                p.Embeds,
+                Status = p.Status.ToString()
+            });
+            return (true, null, shaped);
+        }
         
         public async Task<(bool Success, string? Error, IEnumerable<object>? Data)> GetAllAsync(CancellationToken ct)
         {
             var posts = await _posts.GetAllAsync(ct);
-            var shaped = posts.Select(p => new {
-                p.Id, p.Title, p.Description, p.Aura, p.OriginalPoster, p.Community, p.Embeds,
+            var shaped = posts.Select(p => new 
+            {
+                p.Id, 
+                p.Title, 
+                p.Description, 
+                p.Aura, 
+                p.OriginalPoster, 
+                p.Community, 
+                p.Embeds,
                 Status = p.Status.ToString()
             });
             return (true, null, shaped);
