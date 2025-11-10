@@ -80,10 +80,16 @@ namespace Redit_api.Services
 
             if (!isOwner && !isSuperUser)
                 return (false, "Forbidden.", null);
-
+            
             if (!string.IsNullOrWhiteSpace(dto.Title)) post.Title = dto.Title.Trim();
-            if (dto.Description != null) post.Description = dto.Description;
-            if (dto.Embeds != null) post.Embeds = dto.Embeds;
+            if (dto.Description != null) // allow clearing with empty string if you want
+            {
+                var plain = HtmlUtils.HtmlToPlainText(dto.Description);
+
+                post.Description = plain; // store normalized/plaintext description
+                
+            }            if (dto.Embeds != null) post.Embeds = dto.Embeds;
+            
             if (dto.Status.HasValue) post.Status = dto.Status.Value;
 
             if (dto.Community != null)
@@ -125,6 +131,7 @@ namespace Redit_api.Services
 
             var isOwner = string.Equals(post.OriginalPoster, user.Username, StringComparison.OrdinalIgnoreCase);
             var isSuperUser = user.Role == UserRole.SuperUser;
+            
 
             if (!isOwner && !isSuperUser)
                 return (false, "Forbidden.");
