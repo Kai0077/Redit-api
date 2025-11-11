@@ -187,12 +187,12 @@ namespace Redit_api.GraphSync
                 while (await followsReader.ReadAsync())
                 {
                     var follower = followsReader.GetString(0);
-                    var following = followsReader.GetString(1);
+                    var target   = followsReader.GetString(1);
 
                     await session.RunAsync(
                         "MATCH (a:User {username: $follower}), (b:User {username: $target}) " +
                         "MERGE (a)-[:FOLLOWS]->(b)",
-                        new { follower, following });
+                        new { follower, target });
                 }
 
                 followsReader.Close();
