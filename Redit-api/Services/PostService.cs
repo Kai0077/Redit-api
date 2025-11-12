@@ -1,7 +1,9 @@
+using Redit_api.Data;
 using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
-using Redit_api.Repositories.Postgresql.Interfaces;
+using Redit_api.Repositories;
+using Redit_api.Repositories.Interfaces;
 using Redit_api.Services.Interfaces;
 
 namespace Redit_api.Services
@@ -9,10 +11,12 @@ namespace Redit_api.Services
     public class PostService : IPostService
     {
         private readonly IPostRepository _posts;
+        private readonly AppDBContext _appDbContext;
 
-        public PostService(IPostRepository posts)
+        public PostService(IPostRepository posts, AppDBContext appDbContext)
         {
             _posts = posts;
+            _appDbContext = appDbContext;
         }
 
         public async Task<(bool Success, string? Error, object? Data)> CreateAsync(
@@ -127,7 +131,12 @@ namespace Redit_api.Services
                 post.Community = community;
             }
 
-            await _posts.UpdateAsync(post, ct);
+            await using (var transaction = await _appDbContext.Database.BeginTransactionAsync(ct))
+            {
+                await _appDbContext.SetAppUsernameAsync(user.Username, ct);
+                await _posts.UpdateAsync(post, ct);
+                await transaction.CommitAsync(ct);
+            }
 
             var result = new
             {
@@ -160,7 +169,13 @@ namespace Redit_api.Services
             if (!isOwner && !isSuperUser)
                 return (false, "Forbidden.");
 
-            await _posts.DeleteAsync(post, ct);
+            await using (var transaction = await _appDbContext.Database.BeginTransactionAsync(ct))
+            {
+                await _appDbContext.SetAppUsernameAsync(user.Username, ct);
+                await _posts.DeleteAsync(post, ct);
+                await transaction.CommitAsync(ct);
+            }
+
             return (true, null);
         }
 
