@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Redit_api.Models;
 using Redit_api.Models.DTO;
@@ -10,6 +11,23 @@ namespace Redit_api.Data
     {
         public AppDBContext(DbContextOptions<AppDBContext> options) : base(options)
         {
+        }
+
+        public async Task SetAppUsernameAsync(string username, CancellationToken ct = default)
+        {
+            var connection = Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open)
+                await connection.OpenAsync(ct);
+
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT set_config('app.username', @username, true);";
+            
+            var param = cmd.CreateParameter();
+            param.ParameterName = "username";
+            param.Value = username;
+            cmd.Parameters.Add(param);
+            
+            await cmd.ExecuteNonQueryAsync(ct);
         }
 
         // ==============================
@@ -60,9 +78,8 @@ namespace Redit_api.Data
             modelBuilder.Entity<PostDTO>(b =>
             {
                 b.ToTable("post", "public");
-                // Ensure enum column maps to the Postgres enum type
-                b.Property(p => p.Status).HasColumnType("post_status");   // ⬅️ helpful
-                // Optional: if community is nullable in DB (profile posts), leave it as is
+                b.Property(p => p.Status).HasColumnType("post_status");
+                b.Property(p => p.PublishAt).HasColumnType("timestamp with time zone");
             });
             
             modelBuilder.Entity<ViewUserFollowers>(b =>
