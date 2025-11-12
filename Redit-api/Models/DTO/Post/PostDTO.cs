@@ -34,5 +34,11 @@ namespace Redit_api.Models
 
         [Column("status")]
         public PostStatus Status { get; set; } = PostStatus.Active;
+
+        [Column("is_public")] 
+        public bool IsPublic { get; set; } = true;
+        
+        [Column("publish_at")]
+        public DateTime? PublishAt { get; set; }
     }
 }

@@ -52,7 +52,9 @@ CREATE TABLE post
     original_poster VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     community       VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
     embeds          TEXT[]      DEFAULT '{}',
-    status          post_status DEFAULT 'active'
+    status          post_status DEFAULT 'active',
+    is_public       BOOLEAN DEFAULT TRUE,
+    publish_at      TIMESTAMPTZ NULL
 );
 
 -- =========================
@@ -144,8 +146,24 @@ CREATE TABLE user_followers
     CHECK (target_username <> follower_username)
 );
 
+-- =========================
+-- POST AUDIT LOG
+-- =========================
+CREATE TABLE post_audit_log
+(
+    id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL,
+    old_title TEXT,
+    new_title TEXT,
+    old_description TEXT,
+    new_description TEXT,
+    edited_by VARCHAR(50),
+    edited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX idx_user_followers_target   ON user_followers (target_username);
 CREATE INDEX idx_user_followers_follower ON user_followers (follower_username);
+CREATE INDEX idx_post_audit_log_post_id ON post_audit_log (post_id);
 
 -- =========================
 -- Views on followers/following (only usernames)
@@ -161,3 +179,90 @@ SELECT
     f.follower_username AS source_username,
     f.target_username   AS following_username
 FROM user_followers f;
+
+-- =========================
+-- FUNCTION: Publish scheduled posts (event)
+-- =========================
+CREATE OR REPLACE FUNCTION publish_scheduled_posts()
+RETURNS VOID AS $$
+BEGIN
+UPDATE post
+SET is_public = TRUE
+WHERE is_public = FALSE
+  AND publish_at IS NOT NULL
+  AND publish_at <= NOW();
+RAISE NOTICE 'Scheduled posts published at %', NOW();
+END;
+$$ LANGUAGE plpgsql;
+   
+-- =====================================
+-- Trigger function post updates
+-- =====================================
+CREATE OR REPLACE FUNCTION insert_post_audit_log()
+RETURNS TRIGGER AS $$
+BEGIN
+INSERT INTO post_audit_log (
+    post_id,
+    old_title,
+    new_title,
+    old_description,
+    new_description,
+    edited_by,
+    edited_at
+)
+VALUES (
+           OLD.id,
+           OLD.title,
+           NEW.title,
+           OLD.description,
+           NEW.description,
+           current_setting('app.username', true),
+           NOW()
+       );
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================
+-- Trigger definition post updates
+-- =====================================
+CREATE TRIGGER post_update_audit
+    AFTER UPDATE ON post
+    FOR EACH ROW
+    WHEN (
+    OLD.title IS DISTINCT FROM NEW.title
+    OR OLD.description IS DISTINCT FROM NEW.description
+)
+EXECUTE FUNCTION insert_post_audit_log();
+
+-- =====================================
+-- Trigger function post deletions
+-- =====================================
+CREATE OR REPLACE FUNCTION log_post_deletion()
+RETURNS TRIGGER AS $$
+BEGIN
+INSERT INTO post_audit_log (
+    post_id,
+    old_title,
+    old_description,
+    edited_by,
+    edited_at
+)
+VALUES (
+           OLD.id,
+           OLD.title,
+           OLD.description,
+           current_setting('app.username', true),
+           NOW()
+       );
+RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================
+-- Trigger definition post deletions
+-- =====================================
+CREATE TRIGGER post_delete_audit
+    AFTER DELETE ON post
+    FOR EACH ROW
+    EXECUTE FUNCTION log_post_deletion();
