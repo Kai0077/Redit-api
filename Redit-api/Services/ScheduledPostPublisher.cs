@@ -3,7 +3,7 @@ using Redit_api.Data;
 
 namespace Redit_api.Services
 {
-    public class ScheduledPostPublisher
+    public class ScheduledPostPublisher : BackgroundService
     {
         private readonly IConfiguration _config;
         private readonly ILogger<ScheduledPostPublisher> _logger;
@@ -13,7 +13,7 @@ namespace Redit_api.Services
         {
             _config = config;
             _logger = logger;
-            _connectionString = _config.GetConnectionString("DefaultConnection");
+            _connectionString = _config.GetConnectionString("DefaultConnection")!;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -26,7 +26,7 @@ namespace Redit_api.Services
                 {
                     await using var connection = await DbConnectionFactory.CreateOpenConnectionAsync(_connectionString);
 
-                    var cmd = new NpgsqlCommand("SELECT publish_schedule_posts();", connection);
+                    var cmd = new NpgsqlCommand("SELECT publish_scheduled_posts();", connection);
                     await cmd.ExecuteNonQueryAsync(stoppingToken);
                     
                     _logger.LogInformation("Checked for schedule posts at {Time}", DateTime.UtcNow);
