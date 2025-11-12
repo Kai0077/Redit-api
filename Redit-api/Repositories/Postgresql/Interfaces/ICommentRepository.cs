@@ -1,6 +1,6 @@
 using Redit_api.Models.DTO;
 
-namespace Redit_api.Repositories.Interfaces
+namespace Redit_api.Repositories.Postgresql.Interfaces
 {
     public interface ICommentRepository
     {

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
-using Redit_api.Repositories.Interfaces;
+using Redit_api.Repositories.Postgresql.Interfaces;
 using Redit_api.Services.Interfaces;
 
 namespace Redit_api.Services

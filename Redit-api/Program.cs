@@ -12,8 +12,8 @@ using Redit_api.FirestoreSync;
 using Redit_api.GraphSync;
 using Redit_api.Models;
 using Redit_api.Models.Status;
-using Redit_api.Repositories;
-using Redit_api.Repositories.Interfaces;
+using Redit_api.Repositories.Postgresql;
+using Redit_api.Repositories.Postgresql.Interfaces;
 using Redit_api.Services;
 using Redit_api.Services.Interfaces;
 

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Redit_api.Data;
 using Redit_api.Models;
-using Redit_api.Repositories.Interfaces;
+using Redit_api.Repositories.Postgresql.Interfaces;
 
-namespace Redit_api.Repositories
+namespace Redit_api.Repositories.Postgresql
 {
     public class UserRepository : IUserRepository
     {

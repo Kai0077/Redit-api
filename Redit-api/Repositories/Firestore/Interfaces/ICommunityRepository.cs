@@ -2,7 +2,7 @@ using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
 
-namespace Redit_api.Repositories.Interfaces
+namespace Redit_api.Repositories.Firestore.Interfaces
 {
     public interface ICommunityRepository
     {

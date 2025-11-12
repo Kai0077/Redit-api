@@ -1,6 +1,6 @@
 using Redit_api.Models;
 
-namespace Redit_api.Repositories.Interfaces
+namespace Redit_api.Repositories.Firestore.Interfaces
 {
     public interface IUserRepository
     {
