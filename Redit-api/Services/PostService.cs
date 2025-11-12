@@ -1,6 +1,8 @@
+using Redit_api.Data;
 using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
+using Redit_api.Repositories;
 using Redit_api.Repositories.Interfaces;
 using Redit_api.Services.Interfaces;
 
@@ -9,10 +11,12 @@ namespace Redit_api.Services
     public class PostService : IPostService
     {
         private readonly IPostRepository _posts;
+        private readonly AppDBContext _appDbContext;
 
-        public PostService(IPostRepository posts)
+        public PostService(IPostRepository posts, AppDBContext appDbContext)
         {
             _posts = posts;
+            _appDbContext = appDbContext;
         }
 
         public async Task<(bool Success, string? Error, object? Data)> CreateAsync(
@@ -37,6 +41,26 @@ namespace Redit_api.Services
             if (string.IsNullOrWhiteSpace(plain))
                 return (false, "Description is required.", null);
 
+            DateTime publishAt;
+            bool isPublish;
+
+            if (dto.PublishAt.HasValue)
+            {
+                var publishAtUtc = dto.PublishAt.Value.ToUniversalTime();
+                var nowUtc = DateTime.UtcNow;
+
+                if (publishAtUtc < nowUtc)
+                    return (false, "Publish time cannot be in the past.", null);
+
+                publishAt = publishAtUtc;
+                isPublish = false;
+            }
+            else
+            {
+                publishAt = DateTime.UtcNow;
+                isPublish = true;
+            }
+            
             var post = new PostDTO
             {
                 Title = dto.Title.Trim(),
@@ -45,7 +69,9 @@ namespace Redit_api.Services
                 Community = community,
                 Embeds = dto.Embeds ?? Array.Empty<string>(),
                 Status = dto.Status ?? PostStatus.Active,
-                Aura = 0
+                Aura = 0,
+                PublishAt = publishAt,
+                IsPublic = isPublish
             };
 
             var created = await _posts.CreateAsync(post, ct);
@@ -59,7 +85,9 @@ namespace Redit_api.Services
                 created.OriginalPoster,
                 created.Community,
                 created.Embeds,
-                Status = created.Status.ToString()
+                Status = created.Status.ToString(),
+                created.IsPublic,
+                created.PublishAt
             };
 
             return (true, null, result);
@@ -103,7 +131,12 @@ namespace Redit_api.Services
                 post.Community = community;
             }
 
-            await _posts.UpdateAsync(post, ct);
+            await using (var transaction = await _appDbContext.Database.BeginTransactionAsync(ct))
+            {
+                await _appDbContext.SetAppUsernameAsync(user.Username, ct);
+                await _posts.UpdateAsync(post, ct);
+                await transaction.CommitAsync(ct);
+            }
 
             var result = new
             {
@@ -136,7 +169,13 @@ namespace Redit_api.Services
             if (!isOwner && !isSuperUser)
                 return (false, "Forbidden.");
 
-            await _posts.DeleteAsync(post, ct);
+            await using (var transaction = await _appDbContext.Database.BeginTransactionAsync(ct))
+            {
+                await _appDbContext.SetAppUsernameAsync(user.Username, ct);
+                await _posts.DeleteAsync(post, ct);
+                await transaction.CommitAsync(ct);
+            }
+
             return (true, null);
         }
 
@@ -184,7 +223,7 @@ namespace Redit_api.Services
             var posts = await _posts.GetByUserAsync(username, ct);
             var shaped = posts.Select(p => new {
                 p.Id, p.Title, p.Description, p.Aura, p.OriginalPoster, p.Community, p.Embeds,
-                Status = p.Status.ToString()
+                Status = p.Status.ToString(), p.IsPublic, p.PublishAt
             });
             return (true, null, shaped);
         }
