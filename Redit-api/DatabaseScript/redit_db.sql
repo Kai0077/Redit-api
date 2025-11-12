@@ -52,7 +52,9 @@ CREATE TABLE post
     original_poster VARCHAR(50) REFERENCES "user" (username) ON DELETE CASCADE,
     community       VARCHAR(100) REFERENCES community (name) ON DELETE CASCADE,
     embeds          TEXT[]      DEFAULT '{}',
-    status          post_status DEFAULT 'active'
+    status          post_status DEFAULT 'active',
+    is_public       BOOLEAN DEFAULT TRUE,
+    publish_at      TIMESTAMP NULL
 );
 
 -- =========================
@@ -161,3 +163,18 @@ SELECT
     f.follower_username AS source_username,
     f.target_username   AS following_username
 FROM user_followers f;
+
+-- =========================
+-- FUNCTION: Publish scheduled posts (database event)
+-- =========================
+CREATE OR REPLACE FUNCTION publish_scheduled_posts()
+RETURNS VOID AS $$
+BEGIN
+UPDATE post
+SET is_public = TRUE
+WHERE is_public = FALSE
+  AND publish_at IS NOT NULL
+  AND publish_at <= NOW();
+RAISE NOTICE 'Scheduled posts published at %', NOW();
+END;
+$$ LANGUAGE plpgsql;

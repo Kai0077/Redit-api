@@ -45,7 +45,9 @@ namespace Redit_api.Services
                 Community = community,
                 Embeds = dto.Embeds ?? Array.Empty<string>(),
                 Status = dto.Status ?? PostStatus.Active,
-                Aura = 0
+                Aura = 0,
+                PublishAt = dto.PublishAt,
+                IsPublic = dto.PublishAt == null ? true : false
             };
 
             var created = await _posts.CreateAsync(post, ct);
@@ -59,7 +61,9 @@ namespace Redit_api.Services
                 created.OriginalPoster,
                 created.Community,
                 created.Embeds,
-                Status = created.Status.ToString()
+                Status = created.Status.ToString(),
+                created.IsPublic,
+                created.PublishAt
             };
 
             return (true, null, result);

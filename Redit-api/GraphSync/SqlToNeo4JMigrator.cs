@@ -95,7 +95,7 @@ namespace Redit_api.GraphSync
                 // ===== POSTS =====
                 Console.WriteLine("Migrating posts...");
                 var postCmd = new NpgsqlCommand(
-                    "SELECT id, title, description, aura, original_poster, community, status FROM post;",
+                    "SELECT id, title, description, aura, original_poster, community, status, is_public, publish_at FROM post;",
                     connection);
                 var postReader = await postCmd.ExecuteReaderAsync();
 
@@ -108,15 +108,18 @@ namespace Redit_api.GraphSync
                     var poster = postReader.GetString(4);
                     var community = postReader.GetString(5);
                     var status = postReader.GetString(6);
+                    var isPublic = postReader.GetBoolean(7);
+                    DateTime? publishAt = postReader.IsDBNull(8) ? null : postReader.GetDateTime(8);
 
                     await session.RunAsync(
                         "MERGE (p:Post {id: $id}) " +
-                        "SET p.title = $title, p.description = $description, p.aura = $aura, p.status = $status " +
+                        "SET p.title = $title, p.description = $description, p.aura = $aura, " +
+                        "p.status = $status, p.is_public = $isPublic, p.publish_at = $publishAt " +
                         "WITH p " +
                         "MATCH (u:User {username: $poster}), (c:Community {name: $community}) " +
                         "MERGE (u)-[:POSTED]->(p) " +
                         "MERGE (p)-[:IN_COMMUNITY]->(c)",
-                        new { id, title, description, aura, poster, community, status });
+                        new { id, title, description, aura, poster, community, status, isPublic, publishAt });
                 }
 
                 postReader.Close();
