@@ -160,7 +160,7 @@ builder.Services.AddScoped<ICommunityRepository, CommunityRepository>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
-builder.Services.AddScoped<ScheduledPostPublisher>();
+builder.Services.AddHostedService<ScheduledPostPublisher>();
 
 // Sentry logging
 builder.Services.AddHttpContextAccessor();
