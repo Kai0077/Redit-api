@@ -42,6 +42,8 @@ var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 var connectionString =
     $"Host={host};Port={port};Database={database};Username={user};Password={password};Ssl Mode=Disable";
 
+builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+
 // ===================== FIRESTORE MIGRATION =====================
 var firestoreKeyPath = Environment.GetEnvironmentVariable("FIRESTORE_KEY_PATH");
 var firestoreProjectId = Environment.GetEnvironmentVariable("FIRESTORE_PROJECT_ID");
@@ -158,6 +160,7 @@ builder.Services.AddScoped<ICommunityRepository, CommunityRepository>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ScheduledPostPublisher>();
 
 // Sentry logging
 builder.Services.AddHttpContextAccessor();
