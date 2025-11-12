@@ -17,5 +17,6 @@ namespace Redit_api.Models.DTO
         public string[]? Embeds { get; set; }
 
         public PostStatus? Status { get; set; }
+        public DateTime? PublishAt { get; set; }
     }
 }
