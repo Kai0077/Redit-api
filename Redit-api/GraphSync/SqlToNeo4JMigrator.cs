@@ -161,6 +161,38 @@ namespace Redit_api.GraphSync
 
                 commentReader.Close();
                 communityCmd.Dispose();
+                
+                // ===== POST AUDIT LOGS =====
+                Console.WriteLine("Migrating post audit logs...");
+                var auditCmd = new NpgsqlCommand(
+                        "SELECT id, post_id, old_title, new_title, old_description, new_description, edited_by, edited_at FROM post_audit_log;", 
+                        connection);
+                var auditReader = await auditCmd.ExecuteReaderAsync();
+
+                while (await auditReader.ReadAsync())
+                {
+                    var id = auditReader.GetInt32(0);
+                    var postId = auditReader.IsDBNull(1) ? 0 : auditReader.GetInt32(1);
+                    var oldTitle = auditReader.IsDBNull(2) ? "" : auditReader.GetString(2);
+                    var newTitle = auditReader.IsDBNull(3) ? "" : auditReader.GetString(3);
+                    var oldDesc = auditReader.IsDBNull(4) ? "" : auditReader.GetString(4);
+                    var newDesc = auditReader.IsDBNull(5) ? "" : auditReader.GetString(5);
+                    var editedBy = auditReader.IsDBNull(6) ? "" : auditReader.GetString(6);
+                    var editedAt = auditReader.IsDBNull(7) ? DateTime.UtcNow : auditReader.GetDateTime(7);
+
+                    await session.RunAsync(
+                        "MERGE (a:PostAudit {id: $id}) " +
+                        "SET a.old_title = $oldTitle, a.new_title = $newTitle, " +
+                        "a.old_description = $oldDesc, a.new_description = $newDesc, " +
+                        "a.edited_by = $editedBy, a.edited_at = datetime($editedAt) " +
+                        "WITH a " +
+                        "MATCH (p:Post {id: $postId}) " +
+                        "MERGE (a)-[:AUDITS]->(p)",
+                        new { id, postId, oldTitle, newTitle, oldDesc, newDesc, editedBy, editedAt });
+                }
+                
+                auditReader.Close();
+                auditCmd.Dispose();
 
                 // ===== COMMUNITY MEMBERS =====
                 Console.WriteLine("Migrating community members...");

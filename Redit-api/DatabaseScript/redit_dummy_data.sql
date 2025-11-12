@@ -305,6 +305,59 @@ VALUES
     ('hans',        'mikkeladmin'),
     ('sten',        'weiadmin');
 
+-- POST AUDIT LOGS
+INSERT INTO post_audit_log (post_id, old_title, new_title, old_description, new_description, edited_by, edited_at)
+VALUES
+    (1, 'New overhang project', 'New overhang project (updated)',
+     'Just started working on a 7A roof problem, open to beta advice!',
+     'Updated: Added video link and clarified holds.',
+     'hans', '2025-11-10 19:00:00'),
+
+    (2, 'Favorite IDE for C#', 'Favorite IDE for .NET developers',
+     'What IDE do you prefer for .NET development?',
+     'Expanded to include VS Code and JetBrains Rider discussion.',
+     'hanniadmin', '2025-11-10 19:05:00'),
+
+    (3, 'Best boss fights ever', 'Best boss fights of all time',
+     'What are your most memorable boss fights in games?',
+     'Added extra examples from Elden Ring and Sekiro.',
+     'bob', '2025-11-10 19:10:00'),
+
+    (5, 'Top 2025 reads', 'Top 2025 reads (updated list)',
+     'What’s your favorite book you read this year?',
+     'Added new community suggestions.',
+     'mikkel', '2025-11-10 19:15:00'),
+
+    (6, 'Minimalist UI inspirations', 'Minimalist UI designs that inspire',
+     'Share examples of elegant minimalist designs.',
+     'Updated with new references to Apple and Linear design trends.',
+     'alice', '2025-11-10 19:20:00'),
+
+    (9, 'Prompt engineering tricks', 'Prompt engineering tips & frameworks',
+     'Best practices for working with GPT models?',
+     'Added section about LLM temperature control and token efficiency.',
+     'weiadmin', '2025-11-10 19:25:00'),
+
+    (18, 'Naming your startup', 'Naming your startup effectively',
+     'How did you come up with your company name?',
+     'Added reference to branding research resources.',
+     'hans', '2025-11-10 19:30:00'),
+
+    (22, 'Best VS Code extensions', 'Best VS Code extensions for productivity',
+     'Share your must-have productivity add-ons.',
+     'Mentioned ESLint, GitLens, and REST Client.',
+     'hanniadmin', '2025-11-10 19:35:00'),
+
+    (39, 'Prompt chaining experiments', 'Prompt chaining experiments (results)',
+     'Anyone tried chaining LLMs for reasoning?',
+     'Added metrics and sample chain structure.',
+     'weiadmin', '2025-11-10 19:40:00'),
+
+    (70, 'Best animated films', 'Best animated films (expanded)',
+     'Which animation blew your mind visually?',
+     'Added new titles and updated Pixar references.',
+     'alice', '2025-11-10 19:45:00');
+
 -- Reset SERIAL sequences
 SELECT setval(pg_get_serial_sequence('post','id'),     (SELECT COALESCE(MAX(id),1) FROM post),     true);
 SELECT setval(pg_get_serial_sequence('comments','id'), (SELECT COALESCE(MAX(id),1) FROM comments), true);
