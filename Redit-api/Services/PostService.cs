@@ -37,6 +37,26 @@ namespace Redit_api.Services
             if (string.IsNullOrWhiteSpace(plain))
                 return (false, "Description is required.", null);
 
+            DateTime publishAt;
+            bool isPublish;
+
+            if (dto.PublishAt.HasValue)
+            {
+                var publishAtUtc = dto.PublishAt.Value.ToUniversalTime();
+                var nowUtc = DateTime.UtcNow;
+
+                if (publishAtUtc < nowUtc)
+                    return (false, "Publish time cannot be in the past.", null);
+
+                publishAt = publishAtUtc;
+                isPublish = false;
+            }
+            else
+            {
+                publishAt = DateTime.UtcNow;
+                isPublish = true;
+            }
+            
             var post = new PostDTO
             {
                 Title = dto.Title.Trim(),
@@ -46,8 +66,8 @@ namespace Redit_api.Services
                 Embeds = dto.Embeds ?? Array.Empty<string>(),
                 Status = dto.Status ?? PostStatus.Active,
                 Aura = 0,
-                PublishAt = dto.PublishAt,
-                IsPublic = dto.PublishAt == null ? true : false
+                PublishAt = publishAt,
+                IsPublic = isPublish
             };
 
             var created = await _posts.CreateAsync(post, ct);
@@ -188,7 +208,7 @@ namespace Redit_api.Services
             var posts = await _posts.GetByUserAsync(username, ct);
             var shaped = posts.Select(p => new {
                 p.Id, p.Title, p.Description, p.Aura, p.OriginalPoster, p.Community, p.Embeds,
-                Status = p.Status.ToString()
+                Status = p.Status.ToString(), p.IsPublic, p.PublishAt
             });
             return (true, null, shaped);
         }

@@ -62,8 +62,19 @@ namespace Redit_api.FirestoreSync
                     documentId = Guid.NewGuid().ToString();
                 }
 
-                var cleanData =
-                    values.ToDictionary(key => key.Key, value => value.Value is DBNull ? null : value.Value);
+                var cleanData = values.ToDictionary(
+                    keyValuePair => keyValuePair.Key,
+                    keyValuePair =>
+                    {
+                        if (keyValuePair.Value is DBNull) return null;
+
+                        if (keyValuePair.Value is DateTime dateTime)
+                        {
+                            return DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+                        }
+
+                        return keyValuePair.Value;
+                    });
 
                 await collection.Document(documentId).SetAsync(cleanData);
                 count++;
