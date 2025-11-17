@@ -1,4 +1,3 @@
-// Repositories/PostRepository.cs
 using Microsoft.EntityFrameworkCore;
 using Redit_api.Data;
 using Redit_api.Models;
@@ -46,6 +45,7 @@ namespace Redit_api.Repositories.Postgresql
 
         public async Task<IEnumerable<PostDTO>> GetAllPublicAsync(CancellationToken ct) =>
             await _db.Posts
+                .Where(p => p.IsPublic)
                 .OrderBy(p => Guid.NewGuid())
                 .Take(100)
                 .ToListAsync(ct);
