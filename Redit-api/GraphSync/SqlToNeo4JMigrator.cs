@@ -95,7 +95,7 @@ namespace Redit_api.GraphSync
                 // ===== POSTS =====
                 Console.WriteLine("Migrating posts...");
                 var postCmd = new NpgsqlCommand(
-                    "SELECT id, title, description, aura, original_poster, community, status FROM post;",
+                    "SELECT id, title, description, aura, original_poster, community, status, is_public, publish_at FROM post;",
                     connection);
                 var postReader = await postCmd.ExecuteReaderAsync();
 
@@ -108,15 +108,18 @@ namespace Redit_api.GraphSync
                     var poster = postReader.GetString(4);
                     var community = postReader.GetString(5);
                     var status = postReader.GetString(6);
+                    var isPublic = postReader.GetBoolean(7);
+                    DateTime? publishAt = postReader.IsDBNull(8) ? null : postReader.GetDateTime(8);
 
                     await session.RunAsync(
                         "MERGE (p:Post {id: $id}) " +
-                        "SET p.title = $title, p.description = $description, p.aura = $aura, p.status = $status " +
+                        "SET p.title = $title, p.description = $description, p.aura = $aura, " +
+                        "p.status = $status, p.is_public = $isPublic, p.publish_at = $publishAt " +
                         "WITH p " +
                         "MATCH (u:User {username: $poster}), (c:Community {name: $community}) " +
                         "MERGE (u)-[:POSTED]->(p) " +
                         "MERGE (p)-[:IN_COMMUNITY]->(c)",
-                        new { id, title, description, aura, poster, community, status });
+                        new { id, title, description, aura, poster, community, status, isPublic, publishAt });
                 }
 
                 postReader.Close();
@@ -158,6 +161,38 @@ namespace Redit_api.GraphSync
 
                 commentReader.Close();
                 communityCmd.Dispose();
+                
+                // ===== POST AUDIT LOGS =====
+                Console.WriteLine("Migrating post audit logs...");
+                var auditCmd = new NpgsqlCommand(
+                        "SELECT id, post_id, old_title, new_title, old_description, new_description, edited_by, edited_at FROM post_audit_log;", 
+                        connection);
+                var auditReader = await auditCmd.ExecuteReaderAsync();
+
+                while (await auditReader.ReadAsync())
+                {
+                    var id = auditReader.GetInt32(0);
+                    var postId = auditReader.IsDBNull(1) ? 0 : auditReader.GetInt32(1);
+                    var oldTitle = auditReader.IsDBNull(2) ? "" : auditReader.GetString(2);
+                    var newTitle = auditReader.IsDBNull(3) ? "" : auditReader.GetString(3);
+                    var oldDesc = auditReader.IsDBNull(4) ? "" : auditReader.GetString(4);
+                    var newDesc = auditReader.IsDBNull(5) ? "" : auditReader.GetString(5);
+                    var editedBy = auditReader.IsDBNull(6) ? "" : auditReader.GetString(6);
+                    var editedAt = auditReader.IsDBNull(7) ? DateTime.UtcNow : auditReader.GetDateTime(7);
+
+                    await session.RunAsync(
+                        "MERGE (a:PostAudit {id: $id}) " +
+                        "SET a.old_title = $oldTitle, a.new_title = $newTitle, " +
+                        "a.old_description = $oldDesc, a.new_description = $newDesc, " +
+                        "a.edited_by = $editedBy, a.edited_at = datetime($editedAt) " +
+                        "WITH a " +
+                        "MATCH (p:Post {id: $postId}) " +
+                        "MERGE (a)-[:AUDITS]->(p)",
+                        new { id, postId, oldTitle, newTitle, oldDesc, newDesc, editedBy, editedAt });
+                }
+                
+                auditReader.Close();
+                auditCmd.Dispose();
 
                 // ===== COMMUNITY MEMBERS =====
                 Console.WriteLine("Migrating community members...");

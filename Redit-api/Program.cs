@@ -12,8 +12,10 @@ using Redit_api.FirestoreSync;
 using Redit_api.GraphSync;
 using Redit_api.Models;
 using Redit_api.Models.Status;
-using Redit_api.Repositories;
-using Redit_api.Repositories.Interfaces;
+using Redit_api.Repositories.Postgresql;
+using Redit_api.Repositories.Postgresql.Interfaces;
+using Redit_api.Repositories.Firestore;
+using Redit_api.Repositories.Firestore.Interfaces;
 using Redit_api.Services;
 using Redit_api.Services.Interfaces;
 
@@ -42,6 +44,8 @@ var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 var connectionString =
     $"Host={host};Port={port};Database={database};Username={user};Password={password};Ssl Mode=Disable";
 
+builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+
 // ===================== FIRESTORE MIGRATION =====================
 var firestoreKeyPath = Environment.GetEnvironmentVariable("FIRESTORE_KEY_PATH");
 var firestoreProjectId = Environment.GetEnvironmentVariable("FIRESTORE_PROJECT_ID");
@@ -60,6 +64,8 @@ Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", firestoreKe
 var firestoreDb = FirestoreDb.Create(firestoreProjectId);
 Console.WriteLine($"Connected to Firestore project: {firestoreProjectId}");
 
+builder.Services.AddSingleton(firestoreDb);
+
 var migrator = new SqlToFirestoreMigrator(firestoreDb, connectionString);
 
 // ===================== POSTGRESQL SEEDING =====================
@@ -77,7 +83,7 @@ else
 }
 
 // ===================== FIRESTORE MIGRATION EXECUTION =====================
-await migrator.RunMigrationAsync();
+// await migrator.RunMigrationAsync(); // Disabled firestore migration
 
 // ===================== NEO4J MIGRATION =====================
 var neo4JUri = Environment.GetEnvironmentVariable("NEO4J_URI");
@@ -99,8 +105,7 @@ builder.Services.AddSingleton(neo4JDriver);
 var neo4JMigrator = new SqlToNeo4JMigrator(neo4JDriver, connectionString);
 
 // ===================== Neo4J MIGRATION EXECUTION =====================
-await neo4JMigrator.RunMigrationAsync();
-
+// await neo4JMigrator.RunMigrationAsync(); // Disable neo4J migration
 // ======================= JWT Authentication =======================
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -149,15 +154,21 @@ builder.Services.AddSwaggerGen();
 
 // ======================= SERVICE, REPOSITORY & INFRASTRUCTURE REGISTRATION =======================
 builder.Services.AddScoped<IPostService, PostService>();
-builder.Services.AddScoped<IPostRepository, PostRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPostgresPostRepository, PostgresPostRepository>();
+builder.Services.AddScoped<IFirestorePostRepository, FirestorePostRepository>();
+builder.Services.AddScoped<IPostgresUserRepository, PostgresUserRepository>();
+builder.Services.AddScoped<IFirestoreUserRepository, FirestoreUserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher<UserDTO>, PasswordHasher<UserDTO>>();
-builder.Services.AddScoped<ICommunityRepository, CommunityRepository>();
+builder.Services.AddScoped<IPostgresCommunityRepository, PostgresCommunityRepository>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
-builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IFirestoreCommunityRepository, FirestoreCommunityRepository>();
+builder.Services.AddScoped<IPostgresCommunityRepository, PostgresCommunityRepository>();
+builder.Services.AddScoped<IPostgresCommentRepository, PostgresCommentRepository>();
+builder.Services.AddScoped<IFirestoreCommentRepository, FirestoreCommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddHostedService<ScheduledPostPublisher>();
 
 // Sentry logging
 builder.Services.AddHttpContextAccessor();

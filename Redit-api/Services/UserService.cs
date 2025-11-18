@@ -3,7 +3,11 @@ using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
 using Redit_api.Repositories.Interfaces;
+using Redit_api.Repositories.Firestore.Interfaces;
+using Redit_api.Repositories.Postgresql.Interfaces;
 using Redit_api.Services.Interfaces;
+using DotNetEnv;
+
 
 namespace Redit_api.Services
 {
@@ -13,11 +17,19 @@ namespace Redit_api.Services
         private readonly IPasswordHasher<UserDTO> _hasher;
         private readonly ITokenService _tokens;
 
-        public UserService(IUserRepository repository, IPasswordHasher<UserDTO> hasher, ITokenService tokens)
+        public UserService(IPostgresUserRepository postgresRepository, IFirestoreUserRepository firestoreRepository, IPasswordHasher<UserDTO> hasher, ITokenService tokens)
         {
-            _repository = repository;
             _hasher = hasher;
             _tokens = tokens;
+
+            var db = Environment.GetEnvironmentVariable("DB_TYPE")?.ToLower();
+
+            _repository = db switch
+            {
+                "postgres" => postgresRepository,
+                "firestore" => firestoreRepository,
+                _ => throw new Exception("DB_TYPE must not be empty")
+            };
         }
 
         public async Task<(bool Success, string? Error, object? UserData)> SignupAsync(UserSignupDTO dto, CancellationToken ct)
