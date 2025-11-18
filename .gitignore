@@ -23,6 +23,7 @@ mono_crash.*
 
 # Firebase credentials
 Redit-api/firestore-admin-key.json
+firestore-admin-key.json
 
 # Neo4J credentials
 Redit-api/neo4j-admin-key.txt
