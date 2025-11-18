@@ -6,10 +6,10 @@ using Redit_api.Repositories.Postgresql.Interfaces;
 
 namespace Redit_api.Repositories.Postgresql
 {
-    public class CommentRepository : ICommentRepository
+    public class PostgresCommentRepository : IPostgresCommentRepository
     {
         private readonly AppDBContext _db;
-        public CommentRepository(AppDBContext db) => _db = db;
+        public PostgresCommentRepository(AppDBContext db) => _db = db;
 
         public async Task<CommentDTO> CreateAsync(CommentDTO comment, CancellationToken ct)
         {

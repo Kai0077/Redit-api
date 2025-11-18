@@ -1,9 +1,9 @@
 using Redit_api.Models.DTO;
 using Redit_api.Repositories.Interfaces;
 
-namespace Redit_api.Repositories.Firestore.Interfaces
+namespace Redit_api.Repositories.Postgresql.Interfaces
 {
-    public interface IFirestoreCommentRepository : ICommentRepository 
+    public interface IPostgresCommentRepository : ICommentRepository
     {
         new Task<CommentDTO> CreateAsync(CommentDTO comment, CancellationToken ct);
         new Task<CommentDTO?> GetByIdAsync(int id, CancellationToken ct);

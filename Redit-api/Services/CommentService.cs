@@ -1,7 +1,9 @@
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
+using Redit_api.Repositories.Firestore.Interfaces;
 using Redit_api.Repositories.Postgresql.Interfaces;
 using Redit_api.Services.Interfaces;
+using Redit_api.Repositories.Interfaces;
 
 namespace Redit_api.Services
 {
@@ -10,10 +12,18 @@ namespace Redit_api.Services
         private readonly ICommentRepository _repo;
         private readonly IPostgresUserRepository _postgresUsers;
 
-        public CommentService(ICommentRepository repo, IPostgresUserRepository postgresUsers)
+        public CommentService(IPostgresCommentRepository postgresRepo, IFirestoreCommentRepository firestoreRepo, IPostgresUserRepository postgresUsers)
         {
-            _repo = repo;
             _postgresUsers = postgresUsers;
+            
+            var db = Environment.GetEnvironmentVariable("DB_TYPE")?.ToLower();
+
+            _repo = db switch
+            {
+                "postgres" => postgresRepo,
+                "firestore" => firestoreRepo,
+                _ => throw new Exception("DB_TYPE can not be empty")
+            };
         }
 
         public async Task<(bool Success, string? Error, object? Data)> CreateAsync(
