@@ -1,20 +1,21 @@
 using Redit_api.Models;
+using Redit_api.Repositories.Interfaces;
 
 namespace Redit_api.Repositories.Postgresql.Interfaces
 {
-    public interface IUserRepository
+    public interface IPostgresUserRepository : IUserRepository
     {
-        Task<bool> UsernameExistsAsync(string username, CancellationToken ct);
-        Task<bool> EmailExistsAsync(string email, CancellationToken ct);
-        Task<UserDTO?> GetByUsernameAsync(string username, CancellationToken ct);
-        Task<UserDTO?> GetByEmailAsync(string email, CancellationToken ct);
-        Task<UserDTO> CreateAsync(UserDTO user, CancellationToken ct);
-        Task UpdateAsync(UserDTO user, CancellationToken ct);
-        Task<List<UserDTO>> GetAllAsync(CancellationToken ct);
-        Task DeleteUserAsync(string username, CancellationToken ct);
-        Task<List<UserDTO>> GetFollowersAsync(string username, CancellationToken ct);
-        Task<List<UserDTO>> GetFollowingAsync(string username, CancellationToken ct);
-        Task<List<string>> GetFollowerUsernamesAsync(string username, CancellationToken ct);
-        Task<List<string>> GetFollowingUsernamesAsync(string username, CancellationToken ct);
+        new Task<bool> UsernameExistsAsync(string username, CancellationToken ct);
+        new Task<bool> EmailExistsAsync(string email, CancellationToken ct);
+        new Task<UserDTO?> GetByUsernameAsync(string username, CancellationToken ct);
+        new Task<UserDTO?> GetByEmailAsync(string email, CancellationToken ct);
+        new Task<UserDTO> CreateAsync(UserDTO user, CancellationToken ct);
+        new Task UpdateAsync(UserDTO user, CancellationToken ct);
+        new Task<List<UserDTO>> GetAllAsync(CancellationToken ct);
+        new Task DeleteUserAsync(string username, CancellationToken ct);
+        new Task<List<UserDTO>> GetFollowersAsync(string username, CancellationToken ct);
+        new Task<List<UserDTO>> GetFollowingAsync(string username, CancellationToken ct);
+        new Task<List<string>> GetFollowerUsernamesAsync(string username, CancellationToken ct);
+        new Task<List<string>> GetFollowingUsernamesAsync(string username, CancellationToken ct);
     }
 }

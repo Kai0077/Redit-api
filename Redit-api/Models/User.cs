@@ -1,12 +1,13 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using Google.Cloud.Firestore;
 using Redit_api.Models.Status;
+using Redit_api.Util;
 
 namespace Redit_api.Models
 {
-    
     [NotMapped]
     public class User
-    {
+    { 
        public string Name { get; set; }
        public string Username { get; set; }
        public string Email { get; set; }

@@ -2,7 +2,7 @@ using Redit_api.Models.DTO;
 
 namespace Redit_api.Repositories.Firestore.Interfaces
 {
-    public interface ICommentRepository
+    public interface IFirestoreCommentRepository
     {
         Task<CommentDTO> CreateAsync(CommentDTO comment, CancellationToken ct);
         Task<CommentDTO?> GetByIdAsync(int id, CancellationToken ct);

@@ -7,10 +7,10 @@ using Redit_api.Repositories.Postgresql.Interfaces;
 
 namespace Redit_api.Repositories.Postgresql
 {
-    public class CommunityRepository : ICommunityRepository
+    public class PostgresCommunityRepository : IPostgresCommunityRepository
     {
         private readonly AppDBContext _db;
-        public CommunityRepository(AppDBContext db) => _db = db;
+        public PostgresCommunityRepository(AppDBContext db) => _db = db;
 
         public Task<bool> ExistsAsync(string name, CancellationToken ct) =>
             _db.Communities.AsNoTracking().AnyAsync(c => c.Name == name, ct);

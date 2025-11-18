@@ -5,10 +5,10 @@ using Redit_api.Repositories.Postgresql.Interfaces;
 
 namespace Redit_api.Repositories.Postgresql
 {
-    public class UserRepository : IUserRepository
+    public class PostgresUserRepository : IPostgresUserRepository
     {
         private readonly AppDBContext _db;
-        public UserRepository(AppDBContext db) => _db = db;
+        public PostgresUserRepository(AppDBContext db) => _db = db;
 
         public Task<bool> UsernameExistsAsync(string username, CancellationToken ct) =>
             _db.Users.AsNoTracking().AnyAsync(u => u.Username == username, ct);
