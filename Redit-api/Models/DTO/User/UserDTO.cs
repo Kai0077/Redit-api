@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Google.Cloud.Firestore;
 using Redit_api.Models.Status;
+using Redit_api.Util;
 
 namespace Redit_api.Models
 {
@@ -48,11 +49,11 @@ namespace Redit_api.Models
         public string? ProfilePicture { get; set; }
 
         [Column("account_status")]
-        [FirestoreProperty("account_status")]
-        public UserStatus AccountStatus { get; set; } = UserStatus.Offline;
+        [FirestoreProperty("account_status", ConverterType = typeof(UserStatusConverter))]
+        public UserStatus? AccountStatus { get; set; } = UserStatus.Offline;
         
         [Column("role")]
-        [FirestoreProperty("role")]
+        [FirestoreProperty("role", ConverterType = typeof(UserRoleConverter))]
         public UserRole Role { get; set; } = UserRole.User;
 
     }

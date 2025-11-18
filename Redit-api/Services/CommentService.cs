@@ -8,12 +8,12 @@ namespace Redit_api.Services
     public class CommentService : ICommentService
     {
         private readonly ICommentRepository _repo;
-        private readonly IUserRepository _users;
+        private readonly IPostgresUserRepository _postgresUsers;
 
-        public CommentService(ICommentRepository repo, IUserRepository users)
+        public CommentService(ICommentRepository repo, IPostgresUserRepository postgresUsers)
         {
             _repo = repo;
-            _users = users;
+            _postgresUsers = postgresUsers;
         }
 
         public async Task<(bool Success, string? Error, object? Data)> CreateAsync(
@@ -66,13 +66,13 @@ namespace Redit_api.Services
             var existing = await _repo.GetByIdAsync(id, ct);
             if (existing == null) return (false, "Not found.", null);
 
-            var requester = await _users.GetByUsernameAsync(existing.Commenter, ct); // load owner userDTO
+            var requester = await _postgresUsers.GetByUsernameAsync(existing.Commenter, ct); // load owner userDTO
             var emailOwner = requester?.Email?.ToLowerInvariant();
 
             // who is making the request?
             var requesterName = await _repo.GetUsernameByEmailAsync(requesterEmail, ct);
             if (string.IsNullOrEmpty(requesterName)) return (false, "User not found.", null);
-            var requesterUser = await _users.GetByUsernameAsync(requesterName, ct);
+            var requesterUser = await _postgresUsers.GetByUsernameAsync(requesterName, ct);
             var isOwner = string.Equals(emailOwner, requesterEmail, StringComparison.OrdinalIgnoreCase);
             var isSuper = requesterUser?.Role == UserRole.SuperUser;
 
@@ -102,12 +102,12 @@ namespace Redit_api.Services
             var existing = await _repo.GetByIdAsync(id, ct);
             if (existing == null) return (false, "Not found.");
 
-            var owner = await _users.GetByUsernameAsync(existing.Commenter, ct);
+            var owner = await _postgresUsers.GetByUsernameAsync(existing.Commenter, ct);
             var ownerEmail = owner?.Email?.ToLowerInvariant();
 
             var requesterName = await _repo.GetUsernameByEmailAsync(requesterEmail, ct);
             if (string.IsNullOrEmpty(requesterName)) return (false, "User not found.");
-            var requesterUser = await _users.GetByUsernameAsync(requesterName, ct);
+            var requesterUser = await _postgresUsers.GetByUsernameAsync(requesterName, ct);
 
             var isOwner = string.Equals(ownerEmail, requesterEmail, StringComparison.OrdinalIgnoreCase);
             var isSuper = requesterUser?.Role == UserRole.SuperUser;

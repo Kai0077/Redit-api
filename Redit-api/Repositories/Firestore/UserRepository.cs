@@ -4,14 +4,12 @@ using Google.Cloud.Firestore;
 
 namespace Redit_api.Repositories.Firestore;
 
-public class UserRepository : IUserRepository
+public class FirestoreUserRepository : IFirestoreUserRepository
 {
     private readonly FirestoreDb _db;
-    private readonly string _connectionString;
-    public UserRepository(FirestoreDb db, string connectionString)
+    public FirestoreUserRepository(FirestoreDb db)
     {
         _db = db;
-        _connectionString = connectionString;
     }
     
     public async Task<bool> UsernameExistsAsync(string username, CancellationToken ct)
@@ -37,7 +35,7 @@ public class UserRepository : IUserRepository
 
         if (!userSnapshot.Exists) throw new Exception($"User with given username: {username} does not exists");
         
-        UserDTO user =  userSnapshot.ConvertTo<UserDTO>();
+        var user =  userSnapshot.ConvertTo<UserDTO>();
         return user;
 
     }

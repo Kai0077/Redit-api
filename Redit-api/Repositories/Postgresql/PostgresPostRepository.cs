@@ -5,10 +5,10 @@ using Redit_api.Repositories.Postgresql.Interfaces;
 
 namespace Redit_api.Repositories.Postgresql
 {
-    public class PostRepository : IPostRepository
+    public class PostgresPostRepository : IPostgresPostRepository
     {
         private readonly AppDBContext _db;
-        public PostRepository(AppDBContext db) => _db = db;
+        public PostgresPostRepository(AppDBContext db) => _db = db;
 
         public async Task<PostDTO> CreateAsync(PostDTO post, CancellationToken ct)
         {

@@ -3,7 +3,7 @@ using Redit_api.Repositories.Firestore.Interfaces;
 
 namespace Redit_api.Repositories.Firestore;
 
-public class CommentRepository : ICommentRepository
+public class FirestoreCommentRepository : IFirestoreCommentRepository
 {
     public Task<CommentDTO> CreateAsync(CommentDTO comment, CancellationToken ct)
     {
