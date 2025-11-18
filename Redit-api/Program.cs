@@ -165,7 +165,8 @@ builder.Services.AddScoped<IPostgresCommunityRepository, PostgresCommunityReposi
 builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddScoped<IFirestoreCommunityRepository, FirestoreCommunityRepository>();
 builder.Services.AddScoped<IPostgresCommunityRepository, PostgresCommunityRepository>();
-builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IPostgresCommentRepository, PostgresCommentRepository>();
+builder.Services.AddScoped<IFirestoreCommentRepository, FirestoreCommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddHostedService<ScheduledPostPublisher>();
 
