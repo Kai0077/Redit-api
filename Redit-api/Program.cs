@@ -17,10 +17,10 @@ using Redit_api.Repositories.Interfaces;
 using Redit_api.Services;
 using Redit_api.Services.Interfaces;
 
-var builder = WebApplication.CreateBuilder(args);
-
 // Load environment variables
 Env.Load("Secret.env");
+
+var builder = WebApplication.CreateBuilder(args);
 
 // ======================= LOGGING SENTRY.IO =======================
 var sentryDsn = Environment.GetEnvironmentVariable("SENTRY_DSN");
