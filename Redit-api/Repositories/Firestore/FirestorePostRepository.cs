@@ -67,7 +67,7 @@ public class FirestorePostRepository : IFirestorePostRepository
         var userRef = _db.Collection("user").WhereEqualTo("email", email);
         var userSnapshot = await userRef.GetSnapshotAsync(ct);
 
-        if (userSnapshot.Count != 0) throw new Exception($"User with email {email} does not exist");
+        if (userSnapshot.Count == 0) throw new Exception($"User with email {email} does not exist");
 
         var documentSnapshot = userSnapshot.Documents[0];
         var user = documentSnapshot.ConvertTo<UserDTO>();
@@ -80,7 +80,7 @@ public class FirestorePostRepository : IFirestorePostRepository
         var userRef = _db.Collection("user").WhereEqualTo("email", email);
         var userSnapshot = await userRef.GetSnapshotAsync(ct);
 
-        if (userSnapshot.Count != 0) throw new Exception($"User with email {email} does not exist");
+        if (userSnapshot.Count == 0) throw new Exception($"User with email {email} does not exist");
 
         var documentSnapshot = userSnapshot.Documents[0];
         var user = documentSnapshot.ConvertTo<UserDTO>();
