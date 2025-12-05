@@ -1,15 +1,14 @@
-// Repositories/PostRepository.cs
 using Microsoft.EntityFrameworkCore;
 using Redit_api.Data;
 using Redit_api.Models;
-using Redit_api.Repositories.Interfaces;
+using Redit_api.Repositories.Postgresql.Interfaces;
 
-namespace Redit_api.Repositories
+namespace Redit_api.Repositories.Postgresql
 {
-    public class PostRepository : IPostRepository
+    public class PostgresPostRepository : IPostgresPostRepository
     {
         private readonly AppDBContext _db;
-        public PostRepository(AppDBContext db) => _db = db;
+        public PostgresPostRepository(AppDBContext db) => _db = db;
 
         public async Task<PostDTO> CreateAsync(PostDTO post, CancellationToken ct)
         {
@@ -46,6 +45,7 @@ namespace Redit_api.Repositories
 
         public async Task<IEnumerable<PostDTO>> GetAllPublicAsync(CancellationToken ct) =>
             await _db.Posts
+                .Where(p => p.IsPublic)
                 .OrderBy(p => Guid.NewGuid())
                 .Take(100)
                 .ToListAsync(ct);

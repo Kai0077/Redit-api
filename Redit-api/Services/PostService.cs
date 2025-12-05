@@ -2,27 +2,38 @@ using Redit_api.Data;
 using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
-using Redit_api.Repositories;
-using Redit_api.Repositories.Interfaces;
+using Redit_api.Repositories.Postgresql;
+using Redit_api.Repositories.Firestore;
+using Redit_api.Repositories.Firestore.Interfaces;
+using Redit_api.Repositories.Postgresql.Interfaces;
 using Redit_api.Services.Interfaces;
+using Redit_api.Repositories.Interfaces;
 
 namespace Redit_api.Services
 {
     public class PostService : IPostService
     {
-        private readonly IPostRepository _posts;
+        private readonly IPostRepository _repository;
         private readonly AppDBContext _appDbContext;
 
-        public PostService(IPostRepository posts, AppDBContext appDbContext)
+        public PostService(IPostgresPostRepository postgresRepository, IFirestorePostRepository firestoreRepository, AppDBContext appDbContext)
         {
-            _posts = posts;
             _appDbContext = appDbContext;
+
+            var db = Environment.GetEnvironmentVariable("DB_TYPE")?.ToLower();
+
+            _repository = db switch
+            {
+                "postgres" => postgresRepository,
+                "firestore" => firestoreRepository,
+                _ => throw new Exception("DB_TYPE must not be empty")
+            };
         }
 
         public async Task<(bool Success, string? Error, object? Data)> CreateAsync(
             string requesterEmail, PostCreateDTO dto, CancellationToken ct)
         {
-            var username = await _posts.GetUsernameByEmailAsync(requesterEmail, ct);
+            var username = await _repository.GetUsernameByEmailAsync(requesterEmail, ct);
             if (string.IsNullOrEmpty(username))
                 return (false, "User not found.", null);
 
@@ -30,7 +41,7 @@ namespace Redit_api.Services
 
             if (community != null)
             {
-                var exists = await _posts.CommunityExistsAsync(community, ct);
+                var exists = await _repository.CommunityExistsAsync(community, ct);
                 if (!exists) return (false, "Community does not exist.", null);
             }
             var title = (dto.Title ?? string.Empty).Trim();
@@ -74,7 +85,7 @@ namespace Redit_api.Services
                 IsPublic = isPublish
             };
 
-            var created = await _posts.CreateAsync(post, ct);
+            var created = await _repository.CreateAsync(post, ct);
 
             var result = new
             {
@@ -96,10 +107,10 @@ namespace Redit_api.Services
         public async Task<(bool Success, string? Error, object? Data)> UpdateAsync(
             string requesterEmail, int id, PostUpdateDTO dto, CancellationToken ct)
         {
-            var user = await _posts.GetUserByEmailAsync(requesterEmail, ct);
+            var user = await _repository.GetUserByEmailAsync(requesterEmail, ct);
             if (user == null) return (false, "User not found.", null);
 
-            var post = await _posts.GetByIdAsync(id, ct);
+            var post = await _repository.GetByIdAsync(id, ct);
             if (post == null) return (false, "Post not found.", null);
 
             var isOwner = string.Equals(post.OriginalPoster, user.Username, StringComparison.OrdinalIgnoreCase);
@@ -125,7 +136,7 @@ namespace Redit_api.Services
                 var community = string.IsNullOrWhiteSpace(dto.Community) ? null : dto.Community.Trim();
                 if (community != null)
                 {
-                    var exists = await _posts.CommunityExistsAsync(community, ct);
+                    var exists = await _repository.CommunityExistsAsync(community, ct);
                     if (!exists) return (false, "Community does not exist.", null);
                 }
                 post.Community = community;
@@ -134,7 +145,7 @@ namespace Redit_api.Services
             await using (var transaction = await _appDbContext.Database.BeginTransactionAsync(ct))
             {
                 await _appDbContext.SetAppUsernameAsync(user.Username, ct);
-                await _posts.UpdateAsync(post, ct);
+                await _repository.UpdateAsync(post, ct);
                 await transaction.CommitAsync(ct);
             }
 
@@ -156,10 +167,10 @@ namespace Redit_api.Services
         public async Task<(bool Success, string? Error)> DeleteAsync(
             string requesterEmail, int id, CancellationToken ct)
         {
-            var user = await _posts.GetUserByEmailAsync(requesterEmail, ct);
+            var user = await _repository.GetUserByEmailAsync(requesterEmail, ct);
             if (user == null) return (false, "User not found.");
 
-            var post = await _posts.GetByIdAsync(id, ct);
+            var post = await _repository.GetByIdAsync(id, ct);
             if (post == null) return (false, "Post not found.");
 
             var isOwner = string.Equals(post.OriginalPoster, user.Username, StringComparison.OrdinalIgnoreCase);
@@ -172,7 +183,7 @@ namespace Redit_api.Services
             await using (var transaction = await _appDbContext.Database.BeginTransactionAsync(ct))
             {
                 await _appDbContext.SetAppUsernameAsync(user.Username, ct);
-                await _posts.DeleteAsync(post, ct);
+                await _repository.DeleteAsync(post, ct);
                 await transaction.CommitAsync(ct);
             }
 
@@ -181,7 +192,7 @@ namespace Redit_api.Services
 
         public async Task<(bool Success, string? Error, IEnumerable<object?> Data)> GetAllPublicAsync(CancellationToken ct)
         {
-            var posts = await _posts.GetAllPublicAsync(ct);
+            var posts = await _repository.GetAllPublicAsync(ct);
             var shaped = posts.Select(p => new
             {
                 p.Id, 
@@ -198,7 +209,7 @@ namespace Redit_api.Services
         
         public async Task<(bool Success, string? Error, IEnumerable<object>? Data)> GetAllAsync(CancellationToken ct)
         {
-            var posts = await _posts.GetAllAsync(ct);
+            var posts = await _repository.GetAllAsync(ct);
             var shaped = posts.Select(p => new 
             {
                 p.Id, 
@@ -216,11 +227,11 @@ namespace Redit_api.Services
         public async Task<(bool Success, string? Error, IEnumerable<object>? Data)> GetByUserAsync(
             string requesterEmail, CancellationToken ct)
         {
-            var username = await _posts.GetUsernameByEmailAsync(requesterEmail, ct);
+            var username = await _repository.GetUsernameByEmailAsync(requesterEmail, ct);
             if (string.IsNullOrEmpty(username))
                 return (false, "User not found.", null);
 
-            var posts = await _posts.GetByUserAsync(username, ct);
+            var posts = await _repository.GetByUserAsync(username, ct);
             var shaped = posts.Select(p => new {
                 p.Id, p.Title, p.Description, p.Aura, p.OriginalPoster, p.Community, p.Embeds,
                 Status = p.Status.ToString(), p.IsPublic, p.PublishAt

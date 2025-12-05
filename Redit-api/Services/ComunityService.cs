@@ -1,15 +1,27 @@
 using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
-using Redit_api.Repositories.Interfaces;
+using Redit_api.Repositories.Firestore.Interfaces;
+using Redit_api.Repositories.Postgresql.Interfaces;
 using Redit_api.Services.Interfaces;
+using Redit_api.Repositories.Interfaces;
 
 namespace Redit_api.Services
 {
     public class CommunityService : ICommunityService
     {
         private readonly ICommunityRepository _repo;
-        public CommunityService(ICommunityRepository repo) => _repo = repo;
+
+        public CommunityService(IPostgresCommunityRepository postgresRepo, IFirestoreCommunityRepository firestoreRepo)
+        {
+            var db = Environment.GetEnvironmentVariable("DB_TYPE")?.ToLower();
+            _repo = db switch
+            {
+                "postgres" => postgresRepo,
+                "firestore" => firestoreRepo,
+                _ => throw new Exception("DB_TYPE must not be empty")
+            };
+        }
 
         public async Task<(bool Ok, string? Err, object? Data)> CreateAsync(string requesterEmail, CommunityCreateDTO dto, CancellationToken ct)
         {
