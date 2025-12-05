@@ -20,13 +20,13 @@ INSERT INTO "user"
 (username, name, email, age, password_hash, aura, bio, profile_picture, account_status, role)
 VALUES
     ('hans',     'Hans Hansen',    'hans@example.com',     22, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 15, 'Full-stack dev and climber', NULL, 'online',          'super_user'),
-    ('sten',   'Sten Bob',       'hanni@example.com',   24, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, 'Frontend engineer',           NULL, 'idle',            'super_user'),
-    ('alice',     'Alice alice',       'wei@example.com',     26, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==',  5, 'Database wizard',             NULL, 'offline',         'super_user'),
-    ('mikkel',  'Mikkel Sørensen', 'mikkel@example.com',  25, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==',  8, 'Sysadmin & hobby drummer',    NULL, 'do_not_disturb',  'super_user'),
+    ('sten',   'Sten Bob',       'sten@gmail.com',   24, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, 'Frontend engineer',           NULL, 'idle',            'super_user'),
+    ('alice',     'Alice alice',       'alice@gmail.com',     26, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==',  5, 'Database wizard',             NULL, 'offline',         'super_user'),
+    ('mikkel',  'Mikkel Sørensen', 'mikkel@gmail.com',  25, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==',  8, 'Sysadmin & hobby drummer',    NULL, 'do_not_disturb',  'super_user'),
     ('weiadmin', 'Wei Yang', 'wei@gmail.com', 23, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, NULL, NULL, 'offline', 'super_user'),
     ('kaiadmin', 'Kai Tsvetkov', 'kai@gmail.com', 23, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, NULL, NULL, 'offline', 'super_user'),
     ('hanniadmin', 'Hanni Lee', 'hanni@gmail.com', 23, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, NULL, NULL, 'offline', 'super_user'),
-    ('mikkeladmin', 'Mikkel Hansen', 'mikkel@gmail.com', 23, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, NULL, NULL, 'offline', 'super_user'),
+    ('mikkeladmin', 'Mikkel Hansen', 'mikkel@outlook.com', 23, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, NULL, NULL, 'offline', 'super_user'),
     ('bob', 'Bob Sten', 'bob@outlook.com', 23, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, NULL, NULL, 'offline', 'user'),
     ('søren', 'Søren Sten', 'søren@gmail.com', 23, 'AQAAAAIAAYagAAAAEKrQuJlCKbOgN7szTQ1LsHPxjbGiu+u7Yib9+50rDUuawwPuLBLuo9Ai0BlF+co/2A==', 10, NULL, NULL, 'offline', 'super_user');
 
