@@ -20,7 +20,10 @@ using Redit_api.Services;
 using Redit_api.Services.Interfaces;
 
 // Load environment variables
-Env.Load("Secret.env");
+if (File.Exists("Secret.env"))
+{
+    Env.Load("Secret.env");
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,11 +38,28 @@ builder.WebHost.UseSentry(option =>
 });
 
 // ======================= POSTGRESQL ENV VARIABLES =======================
-var host = Environment.GetEnvironmentVariable("DB_HOST");
-var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
-var database = Environment.GetEnvironmentVariable("DB_NAME");
-var user = Environment.GetEnvironmentVariable("DB_USER");
-var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+var cloudHost = Environment.GetEnvironmentVariable("CLOUD_DB_HOST");
+var cloudEnabled = !string.IsNullOrWhiteSpace(cloudHost);
+
+var host = cloudEnabled
+    ? cloudHost
+    : Environment.GetEnvironmentVariable("DB_HOST");
+
+var port = cloudEnabled
+    ? Environment.GetEnvironmentVariable("CLOUD_DB_PORT")
+    : Environment.GetEnvironmentVariable("DB_PORT");
+
+var database = cloudEnabled
+    ? Environment.GetEnvironmentVariable("CLOUD_DB_NAME")
+    : Environment.GetEnvironmentVariable("DB_NAME");
+
+var user = cloudEnabled
+    ? Environment.GetEnvironmentVariable("CLOUD_DB_USER")
+    : Environment.GetEnvironmentVariable("DB_USER");
+
+var password = cloudEnabled
+    ? Environment.GetEnvironmentVariable("CLOUD_DB_PASSWORD")
+    : Environment.GetEnvironmentVariable("DB_PASSWORD");
 
 var connectionString =
     $"Host={host};Port={port};Database={database};Username={user};Password={password};Ssl Mode=Disable";
@@ -71,15 +91,24 @@ var migrator = new SqlToFirestoreMigrator(firestoreDb, connectionString);
 // ===================== POSTGRESQL SEEDING =====================
 var seedPath = Path.Combine(Directory.GetCurrentDirectory(), "DatabaseScript", "redit_dummy_data.sql");
 
-if (File.Exists(seedPath))
+var disableSeeding = Environment.GetEnvironmentVariable("DISABLE_SEEDING") == "true";
+
+if (!disableSeeding)
 {
-    Console.WriteLine($"Running seed file: {seedPath}");
-    // ===================== SEEDING database data EXECUTION =====================
-    await SeedExecutor.RunSeedAsync(connectionString, seedPath);
+    if (File.Exists(seedPath))
+    {
+        Console.WriteLine($"Running seed file: {seedPath}");
+        // ===================== SEEDING database data EXECUTION =====================
+        await SeedExecutor.RunSeedAsync(connectionString, seedPath);
+    }
+    else
+    {
+        Console.WriteLine($"Seed file not found at: {Path.GetFullPath(seedPath)}");
+    }
 }
 else
 {
-    Console.WriteLine($"Seed file not found at: {Path.GetFullPath(seedPath)}");
+    Console.WriteLine("Seeding disabled (DISABLE_SEEDING=true).");
 }
 
 // ===================== FIRESTORE MIGRATION EXECUTION =====================
