@@ -14,6 +14,10 @@
 *.sln.docstates
 *.env
 *Secret.env
+*Secret.docker.env
+
+# Secrets / privileged DB roles
+*roles.sql
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

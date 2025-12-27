@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json.Serialization;
-using DotNetEnv;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -19,11 +18,7 @@ using Redit_api.Repositories.Firestore.Interfaces;
 using Redit_api.Services;
 using Redit_api.Services.Interfaces;
 
-// Load environment variables
-if (File.Exists("Secret.env"))
-{
-    Env.Load("Secret.env");
-}
+var isMigrationMode = args.Length > 0 && args[0] == "migrate";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,31 +83,12 @@ builder.Services.AddSingleton(firestoreDb);
 
 var migrator = new SqlToFirestoreMigrator(firestoreDb, connectionString);
 
-// ===================== POSTGRESQL SEEDING =====================
-var seedPath = Path.Combine(Directory.GetCurrentDirectory(), "DatabaseScript", "redit_dummy_data.sql");
-
-var disableSeeding = Environment.GetEnvironmentVariable("DISABLE_SEEDING") == "true";
-
-if (!disableSeeding)
+if (isMigrationMode)
 {
-    if (File.Exists(seedPath))
-    {
-        Console.WriteLine($"Running seed file: {seedPath}");
-        // ===================== SEEDING database data EXECUTION =====================
-        await SeedExecutor.RunSeedAsync(connectionString, seedPath);
-    }
-    else
-    {
-        Console.WriteLine($"Seed file not found at: {Path.GetFullPath(seedPath)}");
-    }
+    Console.WriteLine("Running Firestore migration...");
+    await migrator.RunMigrationAsync();
+    Console.WriteLine("Firestore migration completed.");
 }
-else
-{
-    Console.WriteLine("Seeding disabled (DISABLE_SEEDING=true).");
-}
-
-// ===================== FIRESTORE MIGRATION EXECUTION =====================
-// await migrator.RunMigrationAsync(); // Disabled firestore migration
 
 // ===================== NEO4J MIGRATION =====================
 var neo4JUri = Environment.GetEnvironmentVariable("NEO4J_URI");
@@ -133,8 +109,19 @@ builder.Services.AddSingleton(neo4JDriver);
 
 var neo4JMigrator = new SqlToNeo4JMigrator(neo4JDriver, connectionString);
 
-// ===================== Neo4J MIGRATION EXECUTION =====================
-// await neo4JMigrator.RunMigrationAsync(); // Disable neo4J migration
+if (isMigrationMode)
+{
+    Console.WriteLine("Running Neo4j migration...");
+    await neo4JMigrator.RunMigrationAsync();
+    Console.WriteLine("Neo4j migration completed.");
+}
+
+if (isMigrationMode)
+{
+    Console.WriteLine("Migration finished. Exiting.");
+    return;
+}
+
 // ======================= JWT Authentication =======================
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

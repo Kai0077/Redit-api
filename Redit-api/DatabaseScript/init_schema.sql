@@ -1,9 +1,3 @@
-DROP DATABASE IF EXISTS redit_db;
-CREATE DATABASE redit_db;
-
--- If you're running this in psql, reconnect after creating the DB:
--- \c redit_db
-
 -- =========================
 -- ENUM types
 -- =========================
