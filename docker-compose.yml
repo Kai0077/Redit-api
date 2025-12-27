@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: redit-api
+    ports:
+      - "51478:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    env_file:
+      - ./Redit-api/Secret.docker.env
+    volumes:
+      - ./Redit-api/firestore-admin-key.json:/app/secrets/firestore-admin-key.json:ro
+    depends_on:
+      - postgres
+    
+  postgres:
+    image: postgres:16
+    container_name: redit-postgres
+    env_file:
+      - ./Redit-api/Secret.docker.env
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./Redit-api/DatabaseScript:/docker-entrypoint-initdb.d
+
+volumes:
+  pgdata:
