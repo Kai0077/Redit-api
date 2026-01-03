@@ -11,10 +11,12 @@ using Redit_api.FirestoreSync;
 using Redit_api.GraphSync;
 using Redit_api.Models;
 using Redit_api.Models.Status;
-using Redit_api.Repositories.Postgresql;
-using Redit_api.Repositories.Postgresql.Interfaces;
 using Redit_api.Repositories.Firestore;
 using Redit_api.Repositories.Firestore.Interfaces;
+using Redit_api.Repositories.Neo4j;
+using Redit_api.Repositories.Neo4j.Interfaces;
+using Redit_api.Repositories.Postgresql;
+using Redit_api.Repositories.Postgresql.Interfaces;
 using Redit_api.Services;
 using Redit_api.Services.Interfaces;
 
@@ -90,23 +92,30 @@ if (isMigrationMode)
     Console.WriteLine("Firestore migration completed.");
 }
 
-// ===================== NEO4J MIGRATION =====================
+// ===================== NEO4J MIGRATION + DI =====================
 var neo4JUri = Environment.GetEnvironmentVariable("NEO4J_URI");
 var neo4JUser = Environment.GetEnvironmentVariable("NEO4J_USER");
 var neo4JPassword = Environment.GetEnvironmentVariable("NEO4J_PASSWORD");
 
-if (string.IsNullOrEmpty(neo4JUri))
+if (string.IsNullOrWhiteSpace(neo4JUri) ||
+    string.IsNullOrWhiteSpace(neo4JUser) ||
+    string.IsNullOrWhiteSpace(neo4JPassword))
 {
-    Console.WriteLine("Neo4j connection URI missing");
+    Console.WriteLine("Neo4j env vars missing (NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD).");
 }
 else
 {
     Console.WriteLine($"Connecting to Neo4j at {neo4JUri}");
 }
 
+// Create ONE driver instance
 var neo4JDriver = GraphDatabase.Driver(neo4JUri, AuthTokens.Basic(neo4JUser, neo4JPassword));
-builder.Services.AddSingleton(neo4JDriver);
 
+// Register the SAME instance for DI
+builder.Services.AddSingleton<IDriver>(neo4JDriver);
+builder.Services.AddScoped<INeo4jUserReadRepository, Neo4jUserReadRepository>();
+
+// Use the SAME driver for migration
 var neo4JMigrator = new SqlToNeo4JMigrator(neo4JDriver, connectionString);
 
 if (isMigrationMode)
@@ -114,10 +123,7 @@ if (isMigrationMode)
     Console.WriteLine("Running Neo4j migration...");
     await neo4JMigrator.RunMigrationAsync();
     Console.WriteLine("Neo4j migration completed.");
-}
 
-if (isMigrationMode)
-{
     Console.WriteLine("Migration finished. Exiting.");
     return;
 }
@@ -151,7 +157,6 @@ builder.Services.AddAuthorization();
 builder.Services.AddDbContext<AppDBContext>(opts =>
     opts.UseNpgsql(connectionString, npgsql =>
     {
-        // Map C# enums to PostgreSQL enums
         npgsql.MapEnum<UserStatus>("user_status");
         npgsql.MapEnum<UserRole>("user_role");
         npgsql.MapEnum<PostStatus>("post_status");
@@ -161,7 +166,6 @@ builder.Services.AddDbContext<AppDBContext>(opts =>
 // ======================= MVC, JSON, Swagger, DI =======================
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
-    // serialize enums as strings
     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
@@ -172,21 +176,24 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IPostgresPostRepository, PostgresPostRepository>();
 builder.Services.AddScoped<IFirestorePostRepository, FirestorePostRepository>();
+
 builder.Services.AddScoped<IPostgresUserRepository, PostgresUserRepository>();
 builder.Services.AddScoped<IFirestoreUserRepository, FirestoreUserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher<UserDTO>, PasswordHasher<UserDTO>>();
+
 builder.Services.AddScoped<IPostgresCommunityRepository, PostgresCommunityRepository>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddScoped<IFirestoreCommunityRepository, FirestoreCommunityRepository>();
-builder.Services.AddScoped<IPostgresCommunityRepository, PostgresCommunityRepository>();
+
 builder.Services.AddScoped<IPostgresCommentRepository, PostgresCommentRepository>();
 builder.Services.AddScoped<IFirestoreCommentRepository, FirestoreCommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+
 builder.Services.AddHostedService<ScheduledPostPublisher>();
 
-// Sentry logging
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ISentryLogger, SentryLogger>();
 
@@ -214,7 +221,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// app.UseHttpsRedirection();
 app.UseCors("AllowClient");
 
 app.UseAuthentication();

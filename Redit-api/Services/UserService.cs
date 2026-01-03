@@ -2,12 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Redit_api.Models;
 using Redit_api.Models.DTO;
 using Redit_api.Models.Status;
-using Redit_api.Repositories.Interfaces;
 using Redit_api.Repositories.Firestore.Interfaces;
+using Redit_api.Repositories.Interfaces;
+using Redit_api.Repositories.Neo4j.Interfaces;
 using Redit_api.Repositories.Postgresql.Interfaces;
 using Redit_api.Services.Interfaces;
-using DotNetEnv;
-
 
 namespace Redit_api.Services
 {
@@ -16,11 +15,18 @@ namespace Redit_api.Services
         private readonly IUserRepository _repository;
         private readonly IPasswordHasher<UserDTO> _hasher;
         private readonly ITokenService _tokens;
+        private readonly INeo4jUserReadRepository _neoUsers;
 
-        public UserService(IPostgresUserRepository postgresRepository, IFirestoreUserRepository firestoreRepository, IPasswordHasher<UserDTO> hasher, ITokenService tokens)
+        public UserService(
+            IPostgresUserRepository postgresRepository,
+            IFirestoreUserRepository firestoreRepository,
+            INeo4jUserReadRepository neoUsers,
+            IPasswordHasher<UserDTO> hasher,
+            ITokenService tokens)
         {
             _hasher = hasher;
             _tokens = tokens;
+            _neoUsers = neoUsers;
 
             var db = Environment.GetEnvironmentVariable("DB_TYPE")?.ToLower();
 
@@ -69,7 +75,7 @@ namespace Redit_api.Services
                     created.Aura,
                     created.Bio,
                     created.ProfilePicture,
-                    AccountStatus = created.AccountStatus, // enum serialized as string by JSON options
+                    AccountStatus = created.AccountStatus,
                     created.Role,
                 };
                 return (true, null, result);
@@ -80,8 +86,7 @@ namespace Redit_api.Services
             }
         }
 
-        public async Task<(bool Success, string? Error, string? Token, object? UserData)>
-            LoginAsync(UserLoginDTO dto, CancellationToken ct)
+        public async Task<(bool Success, string? Error, string? Token, object? UserData)> LoginAsync(UserLoginDTO dto, CancellationToken ct)
         {
             var email = dto.Email.Trim().ToLowerInvariant();
             var user = await _repository.GetByEmailAsync(email, ct);
@@ -124,7 +129,10 @@ namespace Redit_api.Services
 
         public async Task<(bool Success, string? Error, IEnumerable<object>? Users)> GetAllUsersAsync(CancellationToken ct)
         {
-            var users = await _repository.GetAllAsync(ct);
+            // Toggle: comment/uncomment ONE of these lines:
+            // var users = await _repository.GetAllAsync(ct);   // Postgres/Firestore (based on DB_TYPE)
+           var users = await _neoUsers.GetAllAsync(ct);        // Neo4j
+
             var shaped = users.Select(u => new
             {
                 u.Username,
@@ -137,6 +145,7 @@ namespace Redit_api.Services
                 AccountStatus = u.AccountStatus.ToString(),
                 Role = u.Role.ToString().ToLower()
             });
+
             return (true, null, shaped);
         }
 
@@ -151,7 +160,7 @@ namespace Redit_api.Services
             var isSelf = string.Equals(requester.Username, target.Username, StringComparison.OrdinalIgnoreCase);
             var isSuper = requester.Role == UserRole.SuperUser;
             var targetIsSuper = target.Role == UserRole.SuperUser;
-            
+
             if (isSelf && isSuper)
                 return (false, "Forbidden: super users cannot delete themselves.");
 
@@ -172,7 +181,6 @@ namespace Redit_api.Services
             }
         }
 
-        // FOLLOWERS/FOLLOWING: return ONLY usernames (from DB views)
         public async Task<(bool Success, string? Error, IEnumerable<string>? Usernames)> GetFollowersAsync(string username, CancellationToken ct)
         {
             var exists = await _repository.GetByUsernameAsync(username.Trim().ToLowerInvariant(), ct);
